@@ -1,0 +1,309 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" style="background-color: #0b1120; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Card shadow -->
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Marker Arrow -->
+    <marker id="rel-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <!-- Background grid subtle dots -->
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1" fill="#1e293b"/>
+  </pattern>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Top Banner / Title Header -->
+  <rect x="40" y="20" width="1520" height="70" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5" filter="url(#card-shadow)"/>
+  <text x="70" y="52" fill="#38bdf8" font-size="14" font-weight="bold" letter-spacing="2">DATABASE ARCHITECTURE</text>
+  <text x="70" y="74" fill="#f8fafc" font-size="20" font-weight="bold">Real-Time Land Acquisition &amp; Management System — Entity-Relationship (ER) Diagram</text>
+  <rect x="1360" y="37" width="170" height="36" rx="8" fill="#0369a1"/>
+  <text x="1445" y="60" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">9 TABLES • 3NF / BCNF</text>
+
+  <!-- RELATIONSHIP PATHS (Drawn beneath cards) -->
+
+  <!-- 1. USERS -> ACQUISITIONS -->
+  <path d="M 340 180 C 400 180, 420 440, 470 440" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="none" marker-end="url(#rel-arrow)"/>
+  <rect x="365" y="295" width="90" height="22" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+  <text x="410" y="310" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="bold">creates (1:N)</text>
+
+  <!-- 2. USERS -> STATUS_HISTORY -->
+  <path d="M 200 300 C 200 350, 200 390, 200 440" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="155" y="355" width="90" height="22" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+  <text x="200" y="370" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="bold">logs (1:N)</text>
+
+  <!-- 3. PROJECTS -> ACQUISITIONS -->
+  <path d="M 610 300 C 610 340, 610 370, 610 410" fill="none" stroke="#a855f7" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="565" y="345" width="90" height="22" rx="6" fill="#0f172a" stroke="#a855f7" stroke-width="1"/>
+  <text x="610" y="360" text-anchor="middle" fill="#c084fc" font-size="11" font-weight="bold">initiates (1:N)</text>
+
+  <!-- 4. OWNERS -> PARCEL_OWNERS -->
+  <path d="M 1290 300 C 1290 350, 1290 390, 1290 440" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="1240" y="355" width="100" height="22" rx="6" fill="#0f172a" stroke="#10b981" stroke-width="1"/>
+  <text x="1290" y="370" text-anchor="middle" fill="#34d399" font-size="11" font-weight="bold">has share (1:N)</text>
+
+  <!-- 5. PARCELS -> PARCEL_OWNERS -->
+  <path d="M 1290 780 C 1290 730, 1290 690, 1290 640" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="1240" y="695" width="100" height="22" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="1"/>
+  <text x="1290" y="710" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="bold">divided in (1:N)</text>
+
+  <!-- 6. PARCELS -> ACQUISITIONS -->
+  <path d="M 1140 840 C 920 840, 850 560, 760 560" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="880" y="660" width="110" height="22" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="1"/>
+  <text x="935" y="675" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="bold">acquired in (1:N)</text>
+
+  <!-- 7. ACQUISITIONS -> STATUS_HISTORY -->
+  <path d="M 470 550 C 420 550, 390 550, 350 550" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="375" y="539" width="75" height="22" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="1"/>
+  <text x="412" y="554" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">tracks (1:N)</text>
+
+  <!-- 8. ACQUISITIONS -> COMPENSATIONS -->
+  <path d="M 610 680 C 610 710, 610 740, 610 780" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="565" y="720" width="90" height="22" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="1"/>
+  <text x="610" y="735" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">awards (1:N)</text>
+
+  <!-- 9. ACQUISITIONS -> OBJECTIONS -->
+  <path d="M 470 630 C 390 630, 350 720, 290 780" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="320" y="700" width="105" height="22" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="1"/>
+  <text x="372" y="715" text-anchor="middle" fill="#f87171" font-size="11" font-weight="bold">disputes (1:N)</text>
+
+  <!-- 10. OWNERS -> COMPENSATIONS -->
+  <path d="M 1140 220 C 940 220, 880 720, 760 840" fill="none" stroke="#06b6d4" stroke-width="2" marker-end="url(#rel-arrow)"/>
+  <rect x="860" y="500" width="100" height="22" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+  <text x="910" y="515" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="bold">receives (1:N)</text>
+
+  <!-- 11. OWNERS -> OBJECTIONS -->
+  <path d="M 1140 160 C 800 160, 450 650, 350 850" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#rel-arrow)"/>
+  <rect x="680" y="270" width="85" height="22" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="1"/>
+  <text x="722" y="285" text-anchor="middle" fill="#f87171" font-size="11" font-weight="bold">files (1:N)</text>
+
+
+  <!-- ================= ENTITY CARDS ================= -->
+
+  <!-- CARD 1: USERS -->
+  <g transform="translate(60, 110)" filter="url(#card-shadow)">
+    <rect width="280" height="190" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect width="280" height="42" rx="10" fill="#1d4ed8"/>
+    <rect y="32" width="280" height="10" fill="#1d4ed8"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">👤 users</text>
+    <text x="264" y="26" text-anchor="end" fill="#bfdbfe" font-size="11">Auth &amp; Roles</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 user_id</tspan></text>
+    <text x="264" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="264" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13">name</text>
+    <text x="264" y="98" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(100)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13">email <tspan fill="#c084fc" font-size="11">[UK]</tspan></text>
+    <text x="264" y="124" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(150)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">role <tspan fill="#38bdf8" font-size="10">(ADMIN|OFFICER)</tspan></text>
+    <text x="264" y="150" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(20)</text>
+    <text x="16" y="174" fill="#64748b" font-size="12">created_at</text>
+    <text x="264" y="174" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 2: PROJECTS -->
+  <g transform="translate(470, 110)" filter="url(#card-shadow)">
+    <rect width="280" height="190" rx="10" fill="#1e293b" stroke="#8b5cf6" stroke-width="2"/>
+    <rect width="280" height="42" rx="10" fill="#6d28d9"/>
+    <rect y="32" width="280" height="10" fill="#6d28d9"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">🏗️ projects</text>
+    <text x="264" y="26" text-anchor="end" fill="#ddd6fe" font-size="11">Govt Schemes</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 project_id</tspan></text>
+    <text x="264" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="264" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13">name</text>
+    <text x="264" y="98" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(150)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13">department</text>
+    <text x="264" y="124" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(100)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">budget</text>
+    <text x="264" y="150" text-anchor="end" fill="#94a3b8" font-size="12">DECIMAL(15,2)</text>
+    <text x="16" y="174" fill="#64748b" font-size="12">created_at</text>
+    <text x="264" y="174" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 3: OWNERS -->
+  <g transform="translate(1140, 110)" filter="url(#card-shadow)">
+    <rect width="290" height="190" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#047857"/>
+    <rect y="32" width="290" height="10" fill="#047857"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">👨‍🌾 owners</text>
+    <text x="274" y="26" text-anchor="end" fill="#a7f3d0" font-size="11">Citizens Registry</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 owner_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="274" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13">full_name</text>
+    <text x="274" y="98" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(100)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13">phone</text>
+    <text x="274" y="124" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(15)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">id_number <tspan fill="#c084fc" font-size="11">[UK: Aadhaar/PAN]</tspan></text>
+    <text x="274" y="150" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(50)</text>
+    <text x="16" y="174" fill="#64748b" font-size="12">created_at</text>
+    <text x="274" y="174" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 4: STATUS_HISTORY -->
+  <g transform="translate(60, 440)" filter="url(#card-shadow)">
+    <rect width="290" height="220" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#475569"/>
+    <rect y="32" width="290" height="10" fill="#475569"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">📜 status_history</text>
+    <text x="274" y="26" text-anchor="end" fill="#cbd5e1" font-size="11">Immutable Audit Trail</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 history_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="274" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 acquisition_id</tspan></text>
+    <text x="274" y="98" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13">old_status</text>
+    <text x="274" y="124" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(30)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">new_status</text>
+    <text x="274" y="150" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(30)</text>
+    <text x="16" y="176" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 changed_by</tspan></text>
+    <text x="274" y="176" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="202" fill="#64748b" font-size="12">changed_at</text>
+    <text x="274" y="202" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 5: ACQUISITIONS (Central Core) -->
+  <g transform="translate(470, 410)" filter="url(#card-shadow)">
+    <rect width="290" height="270" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="2.5"/>
+    <rect width="290" height="46" rx="10" fill="#b45309"/>
+    <rect y="36" width="290" height="10" fill="#b45309"/>
+    <text x="16" y="29" fill="#ffffff" font-size="16" font-weight="bold">⭐ acquisitions</text>
+    <text x="274" y="29" text-anchor="end" fill="#fef3c7" font-size="11">Workflow Engine</text>
+    <!-- Attrs -->
+    <text x="16" y="72" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 acquisition_id</tspan></text>
+    <text x="274" y="72" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="82" x2="274" y2="82" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="104" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 parcel_id</tspan></text>
+    <text x="274" y="104" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="130" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 project_id</tspan></text>
+    <text x="274" y="130" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="156" fill="#fbbf24" font-size="13" font-weight="bold">status</text>
+    <text x="274" y="156" text-anchor="end" fill="#fbbf24" font-size="11">VARCHAR(30)</text>
+    <text x="26" y="176" fill="#94a3b8" font-size="10">[PROPOSED &gt; NOTIFIED &gt; VALUATED &gt; COMPENSATED &gt; COMPLETED]</text>
+    <text x="16" y="204" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 created_by</tspan></text>
+    <text x="274" y="204" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="230" fill="#64748b" font-size="12">created_at</text>
+    <text x="274" y="230" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+    <text x="16" y="254" fill="#64748b" font-size="12">updated_at</text>
+    <text x="274" y="254" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 6: PARCEL_OWNERS (Bridge Table) -->
+  <g transform="translate(1140, 440)" filter="url(#card-shadow)">
+    <rect width="290" height="200" rx="10" fill="#1e293b" stroke="#14b8a6" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#0f766e"/>
+    <rect y="32" width="290" height="10" fill="#0f766e"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">🤝 parcel_owners</text>
+    <text x="274" y="26" text-anchor="end" fill="#ccfbf1" font-size="11">Bridge (M:N)</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 parcel_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#38bdf8" font-size="12">INT (PK, FK)</text>
+    <text x="16" y="94" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 owner_id</tspan></text>
+    <text x="274" y="94" text-anchor="end" fill="#38bdf8" font-size="12">INT (PK, FK)</text>
+    <line x1="16" y1="104" x2="274" y2="104" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="128" fill="#f8fafc" font-size="13">share_percent</text>
+    <text x="274" y="128" text-anchor="end" fill="#94a3b8" font-size="12">DECIMAL(5,2)</text>
+    <text x="26" y="148" fill="#14b8a6" font-size="11">* sum(share_percent) = 100%</text>
+    <text x="16" y="174" fill="#64748b" font-size="12">created_at</text>
+    <text x="274" y="174" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 7: OBJECTIONS -->
+  <g transform="translate(60, 780)" filter="url(#card-shadow)">
+    <rect width="290" height="230" rx="10" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#b91c1c"/>
+    <rect y="32" width="290" height="10" fill="#b91c1c"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">⚠️ objections</text>
+    <text x="274" y="26" text-anchor="end" fill="#fee2e2" font-size="11">Grievance Redressal</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 objection_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="274" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 acquisition_id</tspan></text>
+    <text x="274" y="98" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 owner_id</tspan></text>
+    <text x="274" y="124" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">reason</text>
+    <text x="274" y="150" text-anchor="end" fill="#94a3b8" font-size="12">TEXT</text>
+    <text x="16" y="176" fill="#f8fafc" font-size="13">status <tspan fill="#f87171" font-size="10">(OPEN|RESOLVED)</tspan></text>
+    <text x="274" y="176" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(20)</text>
+    <text x="16" y="202" fill="#64748b" font-size="12">filed_at</text>
+    <text x="274" y="202" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 8: COMPENSATIONS -->
+  <g transform="translate(470, 780)" filter="url(#card-shadow)">
+    <rect width="290" height="240" rx="10" fill="#1e293b" stroke="#06b6d4" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#0e7490"/>
+    <rect y="32" width="290" height="10" fill="#0e7490"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">💰 compensations</text>
+    <text x="274" y="26" text-anchor="end" fill="#cffafe" font-size="11">Financial Payouts</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 compensation_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="274" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 acquisition_id</tspan></text>
+    <text x="274" y="98" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13"><tspan fill="#38bdf8">🔗 owner_id</tspan></text>
+    <text x="274" y="124" text-anchor="end" fill="#38bdf8" font-size="12">INT (FK)</text>
+    <text x="16" y="150" fill="#38bdf8" font-size="13" font-weight="bold">amount</text>
+    <text x="274" y="150" text-anchor="end" fill="#38bdf8" font-size="12">DECIMAL(15,2)</text>
+    <text x="26" y="170" fill="#06b6d4" font-size="10">* area × rate × share% / 100</text>
+    <text x="16" y="194" fill="#f8fafc" font-size="13">payment_status</text>
+    <text x="274" y="194" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(20)</text>
+    <text x="16" y="220" fill="#64748b" font-size="12">payment_date</text>
+    <text x="274" y="220" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- CARD 9: PARCELS -->
+  <g transform="translate(1140, 780)" filter="url(#card-shadow)">
+    <rect width="290" height="230" rx="10" fill="#1e293b" stroke="#22c55e" stroke-width="2"/>
+    <rect width="290" height="42" rx="10" fill="#15803d"/>
+    <rect y="32" width="290" height="10" fill="#15803d"/>
+    <text x="16" y="26" fill="#ffffff" font-size="15" font-weight="bold">🗺️ parcels</text>
+    <text x="274" y="26" text-anchor="end" fill="#bbf7d0" font-size="11">Land Registry</text>
+    <!-- Attrs -->
+    <text x="16" y="66" fill="#f8fafc" font-size="13"><tspan fill="#fbbf24" font-weight="bold">🔑 parcel_id</tspan></text>
+    <text x="274" y="66" text-anchor="end" fill="#94a3b8" font-size="12">INT (PK)</text>
+    <line x1="16" y1="76" x2="274" y2="76" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="98" fill="#f8fafc" font-size="13">survey_number <tspan fill="#c084fc" font-size="11">[UK]</tspan></text>
+    <text x="274" y="98" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(50)</text>
+    <text x="16" y="124" fill="#f8fafc" font-size="13">village</text>
+    <text x="274" y="124" text-anchor="end" fill="#94a3b8" font-size="12">VARCHAR(100)</text>
+    <text x="16" y="150" fill="#f8fafc" font-size="13">area_sqm</text>
+    <text x="274" y="150" text-anchor="end" fill="#94a3b8" font-size="12">DECIMAL(12,2)</text>
+    <text x="16" y="176" fill="#f8fafc" font-size="13">market_rate_per_sqm</text>
+    <text x="274" y="176" text-anchor="end" fill="#94a3b8" font-size="12">DECIMAL(12,2)</text>
+    <text x="16" y="202" fill="#64748b" font-size="12">created_at</text>
+    <text x="274" y="202" text-anchor="end" fill="#64748b" font-size="12">TIMESTAMP</text>
+  </g>
+
+  <!-- ================= BOTTOM LEGEND ================= -->
+  <g transform="translate(40, 1070)" filter="url(#card-shadow)">
+    <rect width="1520" height="95" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <text x="25" y="32" fill="#f8fafc" font-size="13" font-weight="bold">DIAGRAM LEGEND &amp; CONVENTIONS:</text>
+    
+    <text x="25" y="65" fill="#fbbf24" font-size="13" font-weight="bold">🔑 PK</text>
+    <text x="75" y="65" fill="#94a3b8" font-size="12">Primary Key (Unique Identifier)</text>
+
+    <text x="280" y="65" fill="#38bdf8" font-size="13" font-weight="bold">🔗 FK</text>
+    <text x="330" y="65" fill="#94a3b8" font-size="12">Foreign Key (References parent PK)</text>
+
+    <text x="560" y="65" fill="#c084fc" font-size="13" font-weight="bold">[UK]</text>
+    <text x="600" y="65" fill="#94a3b8" font-size="12">Candidate Key / Unique Constraint</text>
+
+    <line x1="840" y1="60" x2="900" y2="60" stroke="#38bdf8" stroke-width="2" marker-end="url(#rel-arrow)"/>
+    <text x="920" y="65" fill="#94a3b8" font-size="12">1-to-Many Relationship (1 : N)</text>
+
+    <rect x="1160" y="48" width="330" height="26" rx="6" fill="#0f172a" stroke="#14b8a6" stroke-width="1"/>
+    <text x="1325" y="65" text-anchor="middle" fill="#2dd4bf" font-size="11" font-weight="bold">PARCEL_OWNERS bridges Many-to-Many (M : N)</text>
+  </g>
+</svg>
