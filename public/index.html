@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Land Acquisition System | AYMK 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --accent-warn: #f59e0b;
+      --accent-danger: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #3b82f6, #10b981);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .auth-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .role-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+
+    .role-badge.admin { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+    .role-badge.officer { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+    .role-badge.owner { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+    .btn-secondary:hover {
+      background: #374151;
+    }
+
+    .btn-success {
+      background: #059669;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #10b981;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .nav-tab.active {
+      background: #1e293b;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.6rem 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.75rem 0.8rem;
+      border-bottom: 1px solid #1a2233;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .status-PROPOSED { background: #374151; color: #d1d5db; }
+    .status-NOTIFIED { background: #1e3a8a; color: #93c5fd; }
+    .status-VALUATED { background: #78350f; color: #fde047; }
+    .status-COMPENSATED { background: #064e3b; color: #6ee7b7; }
+    .status-COMPLETED { background: #047857; color: #a7f3d0; }
+
+    .status-PENDING { background: #78350f; color: #fde047; }
+    .status-PAID { background: #064e3b; color: #6ee7b7; }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .live-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .event-log {
+      max-height: 480px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .event-item {
+      background: #0d131f;
+      border-left: 3px solid var(--primary);
+      padding: 0.6rem 0.8rem;
+      border-radius: 4px;
+    }
+
+    .event-item.acq { border-left-color: #3b82f6; }
+    .event-item.comp { border-left-color: #10b981; }
+    .event-item.obj { border-left-color: #f59e0b; }
+
+    .event-time {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #0d131f;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">AP</div>
+      <div class="brand-title">
+        <h1>Land Acquisition System</h1>
+        <p>Real-Time Workflow, RBAC & Smart Compensations (AYMK 2026)</p>
+      </div>
+    </div>
+
+    <div class="auth-bar">
+      <span class="live-indicator">
+        <span class="live-pulse"></span> SSE Connected
+      </span>
+      <div id="currentUserBadge" class="role-badge officer">OFFICER: Officer Ravi</div>
+      <button class="btn btn-secondary" onclick="quickLogin('admin@ap.gov.in', 'ADMIN')">Admin</button>
+      <button class="btn btn-secondary" onclick="quickLogin('ravi@ap.gov.in', 'OFFICER')">Officer</button>
+      <button class="btn btn-secondary" onclick="quickLogin('suresh@gmail.com', 'OWNER')">Landowner</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    <!-- Left Column: Tabs and Data Management -->
+    <div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('acquisitions')">Acquisitions Pipeline</button>
+        <button class="nav-tab" onclick="switchTab('parcels')">Parcels & Valuation</button>
+        <button class="nav-tab" onclick="switchTab('projects')">Infrastructure Projects</button>
+        <button class="nav-tab" onclick="switchTab('compensations')">Compensations Payouts</button>
+        <button class="nav-tab" onclick="switchTab('objections')">Citizen Grievances</button>
+        <button class="nav-tab" onclick="switchTab('oauth')">OAuth 2.0 Flow Demo</button>
+      </div>
+
+      <!-- Tab 1: Acquisitions -->
+      <div id="tab-acquisitions" class="tab-content">
+        <div class="card">
+          <h2>
+            Active Land Acquisitions
+            <button class="btn btn-primary" onclick="showNewAcquisitionModal()">+ Initiate Acquisition</button>
+          </h2>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Acq ID</th>
+                  <th>Project</th>
+                  <th>Survey No</th>
+                  <th>Village</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="acquisitionsTableBody">
+                <tr><td colspan="6" style="text-align: center;">Loading acquisitions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Parcels -->
+      <div id="tab-parcels" class="tab-content" style="display: none;">
+        <div class="card">
+          <h2>Cadastral Parcels Registry</h2>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Survey No</th>
+                  <th>Village</th>
+                  <th>Area (sqm)</th>
+                  <th>Circle Rate (₹/sqm)</th>
+                  <th>Total Valuation</th>
+                  <th>Owners (Shares)</th>
+                </tr>
+              </thead>
+              <tbody id="parcelsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Projects -->
+      <div id="tab-projects" class="tab-content" style="display: none;">
+        <div class="card">
+          <h2>Government Infrastructure Schemes</h2>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Project ID</th>
+                  <th>Name</th>
+                  <th>Department</th>
+                  <th>Allocated Budget</th>
+                  <th>Acquisitions Linked</th>
+                </tr>
+              </thead>
+              <tbody id="projectsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Compensations -->
+      <div id="tab-compensations" class="tab-content" style="display: none;">
+        <div class="card">
+          <h2>
+            Compensations Ledger
+            <small style="font-size: 0.75rem; color: #10b981;">(Protected by Idempotency-Key)</small>
+          </h2>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Comp ID</th>
+                  <th>Acquisition</th>
+                  <th>Landowner</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="compensationsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: Objections -->
+      <div id="tab-objections" class="tab-content" style="display: none;">
+        <div class="card">
+          <h2>
+            Citizen Grievances & Objections
+            <button class="btn btn-primary" onclick="showFileObjectionModal()">+ File Grievance</button>
+          </h2>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Acquisition</th>
+                  <th>Citizen</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="objectionsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 6: OAuth 2.0 Demo -->
+      <div id="tab-oauth" class="tab-content" style="display: none;">
+        <div class="card">
+          <h2>OAuth 2.0 Authorization Code Flow Simulation</h2>
+          <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">
+            This interactive demo showcases the exact OAuth 2.0 flow covered in lecture:
+            User consent, Authorization Code redirection, Token Exchange, and Resource Profile fetch.
+          </p>
+          <button class="btn btn-primary" onclick="runOAuthDemo()">Run Simulated OAuth 2.0 Flow</button>
+          <pre id="oauthOutput" style="margin-top: 1rem; background: #0d131f; padding: 1rem; border-radius: 6px; font-family: var(--font-mono); font-size: 0.75rem; overflow-x: auto;">Click above to inspect the step-by-step OAuth 2.0 protocol exchange.</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Real-Time SSE Event Stream Feed -->
+    <div>
+      <div class="card">
+        <h2>
+          <span>Real-Time Event Stream</span>
+          <span class="live-indicator"><span class="live-pulse"></span> LIVE</span>
+        </h2>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Subscribed to Server-Sent Events (SSE) via <code>/api/v1/realtime/stream</code>. Every workflow state update, compensation payment, and citizen grievance broadcasts instantly!
+        </p>
+        <div id="eventStreamLog" class="event-log">
+          <div class="event-item">
+            <div class="event-time">System Ready</div>
+            <div>Listening for real-time land acquisition events...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let authToken = '';
+    let currentUser = { email: 'ravi@ap.gov.in', role: 'OFFICER', name: 'Officer Ravi' };
+
+    // Initialize Server-Sent Events (SSE) listener
+    function initSSE() {
+      const evtSource = new EventSource('/api/v1/realtime/stream');
+
+      evtSource.onmessage = function(e) {
+        try {
+          const payload = JSON.parse(e.data);
+          addEventLog(payload);
+          // Auto refresh data tables when real-time event occurs
+          fetchAcquisitions();
+          fetchCompensations();
+          fetchObjections();
+        } catch (err) {
+          console.error('SSE parse error:', err);
+        }
+      };
+
+      evtSource.onerror = function(err) {
+        console.warn('SSE reconnecting...');
+      };
+    }
+
+    function addEventLog(payload) {
+      const container = document.getElementById('eventStreamLog');
+      const item = document.createElement('div');
+      item.className = 'event-item';
+      
+      if (payload.event && payload.event.startsWith('acquisition')) item.classList.add('acq');
+      if (payload.event && payload.event.startsWith('compensation')) item.classList.add('comp');
+      if (payload.event && payload.event.startsWith('objection')) item.classList.add('obj');
+
+      const timeStr = payload.timestamp ? new Date(payload.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+      item.innerHTML = `
+        <div class="event-time">⚡ ${payload.event || 'EVENT'} • ${timeStr}</div>
+        <div>${JSON.stringify(payload.data || payload.message || payload)}</div>
+      `;
+
+      container.insertBefore(item, container.firstChild);
+    }
+
+    async function quickLogin(email, role) {
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: 'password123' })
+        });
+        const result = await res.json();
+        if (result.success) {
+          authToken = result.data.token;
+          currentUser = result.data.user;
+          const badge = document.getElementById('currentUserBadge');
+          badge.textContent = `${currentUser.role}: ${currentUser.name}`;
+          badge.className = `role-badge ${currentUser.role.toLowerCase()}`;
+          alert(`Logged in as ${currentUser.name} (${currentUser.role})`);
+          refreshAll();
+        } else {
+          alert('Login failed: ' + result.message);
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    async function fetchAcquisitions() {
+      try {
+        const res = await fetch('/api/v1/acquisitions');
+        const data = await res.json();
+        const tbody = document.getElementById('acquisitionsTableBody');
+        tbody.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No acquisitions found</td></tr>';
+          return;
+        }
+
+        data.data.forEach(acq => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>#${acq.id}</strong></td>
+            <td>${acq.project ? acq.project.name : 'N/A'}</td>
+            <td><code>${acq.parcel ? acq.parcel.surveyNumber : 'N/A'}</code></td>
+            <td>${acq.parcel ? acq.parcel.village : 'N/A'}</td>
+            <td><span class="status-badge status-${acq.status}">${acq.status}</span></td>
+            <td>
+              ${getNextStatusAction(acq)}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function getNextStatusAction(acq) {
+      const transitions = {
+        PROPOSED: 'NOTIFIED',
+        NOTIFIED: 'VALUATED',
+        VALUATED: 'COMPENSATED',
+        COMPENSATED: 'COMPLETED'
+      };
+      const next = transitions[acq.status];
+      if (!next) return `<span style="color:#10b981;">✓ Done</span>`;
+
+      return `<button class="btn btn-secondary" onclick="advanceStatus(${acq.id}, '${next}')">Advance to ${next} ➔</button>`;
+    }
+
+    async function advanceStatus(acqId, newStatus) {
+      try {
+        const res = await fetch(`/api/v1/acquisitions/${acqId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : ''
+          },
+          body: JSON.stringify({ newStatus })
+        });
+        const result = await res.json();
+        if (result.success) {
+          fetchAcquisitions();
+        } else {
+          alert(`Status transition rejected: ${result.message}`);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function fetchParcels() {
+      try {
+        const res = await fetch('/api/v1/parcels');
+        const data = await res.json();
+        const tbody = document.getElementById('parcelsTableBody');
+        tbody.innerHTML = '';
+
+        data.data.forEach(p => {
+          const ownersStr = p.parcelOwners.map(po => `${po.owner.fullName} (${po.sharePercent}%)`).join(', ');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${p.surveyNumber}</strong></td>
+            <td>${p.village}</td>
+            <td>${p.areaSqm.toLocaleString()} sqm</td>
+            <td>₹${p.marketRatePerSqm.toLocaleString()}</td>
+            <td>₹${p.totalValuation.toLocaleString()}</td>
+            <td>${ownersStr || 'None'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/api/v1/projects');
+        const data = await res.json();
+        const tbody = document.getElementById('projectsTableBody');
+        tbody.innerHTML = '';
+
+        data.data.forEach(pr => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>#${pr.id}</td>
+            <td><strong>${pr.name}</strong></td>
+            <td>${pr.department}</td>
+            <td>₹${pr.budget.toLocaleString()}</td>
+            <td>${pr._count.acquisitions} parcels</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function fetchCompensations() {
+      try {
+        const res = await fetch('/api/v1/compensations', {
+          headers: { 'Authorization': authToken ? `Bearer ${authToken}` : '' }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('compensationsTableBody');
+        tbody.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No compensations yet</td></tr>';
+          return;
+        }
+
+        data.data.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>#${c.id}</td>
+            <td>Acq #${c.acquisitionId} (${c.acquisition ? c.acquisition.parcel.surveyNumber : ''})</td>
+            <td>${c.owner ? c.owner.fullName : 'N/A'}</td>
+            <td><strong>₹${c.amount.toLocaleString()}</strong></td>
+            <td><span class="status-badge status-${c.paymentStatus}">${c.paymentStatus}</span></td>
+            <td>
+              ${c.paymentStatus === 'PENDING' ? `<button class="btn btn-success" onclick="disbursePayment(${c.id})">Disburse ₹</button>` : `<span style="color:#10b981;">Disbursed</span>`}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function disbursePayment(compId) {
+      // Generate a client-side UUID for Idempotency Demonstration
+      const idempotencyKey = 'pay_tx_' + compId + '_' + Date.now();
+      try {
+        const res = await fetch(`/api/v1/compensations/${compId}/pay`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : '',
+            'Idempotency-Key': idempotencyKey
+          }
+        });
+        const result = await res.json();
+        if (result.success) {
+          fetchCompensations();
+        } else {
+          alert('Disbursement failed: ' + result.message);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function fetchObjections() {
+      try {
+        const res = await fetch('/api/v1/objections', {
+          headers: { 'Authorization': authToken ? `Bearer ${authToken}` : '' }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('objectionsTableBody');
+        tbody.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No grievances filed</td></tr>';
+          return;
+        }
+
+        data.data.forEach(obj => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>#${obj.id}</td>
+            <td>Acq #${obj.acquisitionId}</td>
+            <td>${obj.owner ? obj.owner.fullName : 'N/A'}</td>
+            <td>${obj.reason}</td>
+            <td><span class="status-badge status-${obj.status}">${obj.status}</span></td>
+            <td>
+              ${obj.status === 'OPEN' ? `<button class="btn btn-secondary" onclick="resolveObjection(${obj.id}, 'RESOLVED')">Resolve</button>` : `<span style="color:#9ca3af;">Done</span>`}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function resolveObjection(objId, status) {
+      try {
+        const res = await fetch(`/api/v1/objections/${objId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : ''
+          },
+          body: JSON.stringify({ status, resolutionNotes: 'Reviewed and settled by Officer' })
+        });
+        const result = await res.json();
+        if (result.success) {
+          fetchObjections();
+        } else {
+          alert('Resolution failed: ' + result.message);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function runOAuthDemo() {
+      const output = document.getElementById('oauthOutput');
+      output.textContent = 'Simulating OAuth 2.0 flow...\n\n';
+
+      // Step 1: Authorization Endpoint
+      const step1 = await fetch('/api/v1/auth/oauth/google-demo');
+      const data1 = await step1.json();
+      output.textContent += `==> Step 1: Client directs user to OAuth Provider\n${JSON.stringify(data1, null, 2)}\n\n`;
+
+      // Step 2: Code exchange
+      const step2 = await fetch(data1.data.authorizationUrl);
+      const data2 = await step2.json();
+      output.textContent += `==> Step 2: Authorization Code Exchanged & Token Issued\n${JSON.stringify(data2, null, 2)}\n\n`;
+      output.textContent += `✅ User authenticated via simulated OAuth 2.0! Token received: Bearer ${data2.data.token.slice(0, 30)}...`;
+    }
+
+    function refreshAll() {
+      fetchAcquisitions();
+      fetchParcels();
+      fetchProjects();
+      fetchCompensations();
+      fetchObjections();
+    }
+
+    // Auto bootstrap on page load
+    window.onload = async () => {
+      initSSE();
+      // Auto login as default Officer Ravi
+      await quickLogin('ravi@ap.gov.in', 'OFFICER');
+    };
+  </script>
+</body>
+</html>

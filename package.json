@@ -1,0 +1,42 @@
+{
+  "name": "realtime-land-acquisition-backend",
+  "version": "1.0.0",
+  "description": "Real Time System for Land Acquisition - RESTful Backend with Express.js, Prisma ORM, JWT & Cookie Auth, RBAC, and Real-Time SSE",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio",
+    "seed": "node prisma/seed.js",
+    "test": "node tests/api.test.js"
+  },
+  "keywords": [
+    "land-acquisition",
+    "real-time",
+    "express",
+    "prisma",
+    "sqlite",
+    "postgresql",
+    "jwt",
+    "rbac",
+    "sse",
+    "idempotency"
+  ],
+  "author": "AYMK Team (Aastik, Yashmeet, Mann, Krishna)",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prisma": "^5.20.0"
+  }
+}

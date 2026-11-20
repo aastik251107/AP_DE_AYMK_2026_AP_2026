@@ -1,0 +1,190 @@
+// ============================================================================
+// Prisma Schema: Real-Time Land Acquisition & Management System
+// Aligned with team database normalization (01_normalization.md & 03_schema.sql)
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+  // Note: To use PostgreSQL in production, change provider to "postgresql"
+  // and update DATABASE_URL in .env (e.g., postgresql://postgres:postgres@localhost:5432/land_acquisition)
+}
+
+// ----------------------------------------------------------------------------
+// Table 1: User (System logins, Staff roles, & Citizen accounts)
+// Roles: ADMIN, OFFICER, OWNER
+// ----------------------------------------------------------------------------
+model User {
+  id            Int             @id @default(autoincrement())
+  name          String
+  email         String          @unique
+  password      String
+  role          String          @default("OFFICER") // ADMIN, OFFICER, OWNER
+  createdAt     DateTime        @default(now())
+  
+  // Relations
+  acquisitions  Acquisition[]   @relation("UserAcquisitions")
+  statusChanges StatusHistory[] @relation("UserStatusChanges")
+  ownerProfile  Owner?          @relation("UserOwnerProfile")
+
+  @@map("users")
+}
+
+// ----------------------------------------------------------------------------
+// Table 2: Owner (Citizen Landowner Registry)
+// ----------------------------------------------------------------------------
+model Owner {
+  id            Int             @id @default(autoincrement())
+  fullName      String          @map("full_name")
+  phone         String
+  idNumber      String          @unique @map("id_number") // Aadhaar, PAN, etc.
+  userId        Int?            @unique @map("user_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  user          User?           @relation("UserOwnerProfile", fields: [userId], references: [id], onDelete: SetNull)
+  parcelOwners  ParcelOwner[]
+  compensations Compensation[]
+  objections    Objection[]
+
+  @@map("owners")
+}
+
+// ----------------------------------------------------------------------------
+// Table 3: Project (Government Public Infrastructure Schemes)
+// ----------------------------------------------------------------------------
+model Project {
+  id           Int           @id @default(autoincrement())
+  name         String
+  department   String
+  budget       Float
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  acquisitions Acquisition[]
+
+  @@map("projects")
+}
+
+// ----------------------------------------------------------------------------
+// Table 4: Parcel (Cadastral Land Parcel Registry)
+// ----------------------------------------------------------------------------
+model Parcel {
+  id               Int           @id @default(autoincrement())
+  surveyNumber     String        @unique @map("survey_number")
+  village          String
+  areaSqm          Float         @map("area_sqm")
+  marketRatePerSqm Float         @map("market_rate_per_sqm")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  parcelOwners     ParcelOwner[]
+  acquisitions     Acquisition[]
+
+  @@map("parcels")
+}
+
+// ----------------------------------------------------------------------------
+// Table 5: ParcelOwner (Many-to-Many Bridge Table with Share Percentage)
+// ----------------------------------------------------------------------------
+model ParcelOwner {
+  parcelId     Int      @map("parcel_id")
+  ownerId      Int      @map("owner_id")
+  sharePercent Float    @map("share_percent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  parcel       Parcel   @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+  owner        Owner    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@id([parcelId, ownerId])
+  @@map("parcel_owners")
+}
+
+// ----------------------------------------------------------------------------
+// Table 6: Acquisition (Workflow Engine for Land Acquisition)
+// Statuses: PROPOSED, NOTIFIED, VALUATED, COMPENSATED, COMPLETED
+// ----------------------------------------------------------------------------
+model Acquisition {
+  id            Int           @id @default(autoincrement())
+  parcelId      Int           @map("parcel_id")
+  projectId     Int           @map("project_id")
+  status        String        @default("PROPOSED")
+  createdById   Int           @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  parcel        Parcel        @relation(fields: [parcelId], references: [id], onDelete: Restrict)
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  createdBy     User          @relation("UserAcquisitions", fields: [createdById], references: [id], onDelete: Restrict)
+  compensations Compensation[]
+  objections    Objection[]
+  statusHistory StatusHistory[]
+
+  @@unique([parcelId, projectId], name: "uq_parcel_project")
+  @@map("acquisitions")
+}
+
+// ----------------------------------------------------------------------------
+// Table 7: Compensation (Financial Disbursement Ledger per Landowner)
+// Payment Statuses: PENDING, PROCESSING, PAID, FAILED
+// ----------------------------------------------------------------------------
+model Compensation {
+  id             Int       @id @default(autoincrement())
+  acquisitionId  Int       @map("acquisition_id")
+  ownerId        Int       @map("owner_id")
+  amount         Float
+  paymentStatus  String    @default("PENDING") @map("payment_status")
+  paymentDate    DateTime? @map("payment_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
+  owner          Owner       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([acquisitionId, ownerId], name: "uq_acquisition_owner")
+  @@map("compensations")
+}
+
+// ----------------------------------------------------------------------------
+// Table 8: Objection (Citizen Grievance & Dispute Redressal)
+// Statuses: OPEN, UNDER_REVIEW, RESOLVED, REJECTED
+// ----------------------------------------------------------------------------
+model Objection {
+  id             Int       @id @default(autoincrement())
+  acquisitionId  Int       @map("acquisition_id")
+  ownerId        Int       @map("owner_id")
+  reason         String
+  status         String    @default("OPEN")
+  filedAt        DateTime  @default(now()) @map("filed_at")
+  resolvedAt     DateTime? @map("resolved_at")
+
+  // Relations
+  acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
+  owner          Owner       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("objections")
+}
+
+// ----------------------------------------------------------------------------
+// Table 9: StatusHistory (Audit Trail of Workflow Stage Transitions)
+// ----------------------------------------------------------------------------
+model StatusHistory {
+  id             Int         @id @default(autoincrement())
+  acquisitionId  Int         @map("acquisition_id")
+  oldStatus      String?     @map("old_status")
+  newStatus      String      @map("new_status")
+  changedById    Int         @map("changed_by")
+  changedAt      DateTime    @default(now()) @map("changed_at")
+
+  // Relations
+  acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
+  changedBy      User        @relation("UserStatusChanges", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@map("status_history")
+}
