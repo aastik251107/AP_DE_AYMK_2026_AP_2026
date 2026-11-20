@@ -1,11 +1,28 @@
+// ============================================================================
+// 👥 USER MANAGEMENT CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/controllers/userController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "Authorisation, Role Based Authorisation, Prisma CRUD Operations"
+//
+// 💡 WHAT THIS CONTROLLER DOES:
+// Allows System Administrators to view users and promote/demote user roles
+// (e.g. promoting an Officer to an Admin).
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
 
 /**
- * Get all users (Admin only)
+ * 1. GET ALL USERS (ADMIN ONLY)
  * GET /api/v1/users
+ * 
+ * 💡 PRISMA 'SELECT' PROJECTION:
+ * Notice we use `select: { id: true, name: true, password: false }`.
+ * We deliberately EXCLUDE the password hash from the SQL query so sensitive
+ * data is never exposed in the response!
  */
 const getAllUsers = async (req, res, next) => {
   try {
@@ -28,12 +45,13 @@ const getAllUsers = async (req, res, next) => {
 };
 
 /**
- * Get user by ID
+ * 2. GET USER PROFILE BY ID
  * GET /api/v1/users/:id
  */
 const getUserById = async (req, res, next) => {
   try {
     const userId = Number(req.params.id);
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -60,16 +78,18 @@ const getUserById = async (req, res, next) => {
 };
 
 /**
- * Update user role (Admin only)
+ * 3. UPDATE USER ROLE (ADMIN ONLY)
  * PATCH /api/v1/users/:id/role
+ * Body: { role: "ADMIN" | "OFFICER" | "OWNER" }
  */
 const updateUserRole = async (req, res, next) => {
   try {
     const userId = Number(req.params.id);
     const { role } = req.body;
 
+    // Validate that the requested role is a valid enum value
     if (!['ADMIN', 'OFFICER', 'OWNER'].includes(role)) {
-      return sendError(res, 400, 'Invalid role. Must be ADMIN, OFFICER, or OWNER.');
+      return sendError(res, 400, 'Invalid role. Must be one of: ADMIN, OFFICER, OWNER.');
     }
 
     const updatedUser = await prisma.user.update({
@@ -78,7 +98,7 @@ const updateUserRole = async (req, res, next) => {
       select: { id: true, name: true, email: true, role: true }
     });
 
-    return sendSuccess(res, 200, `User role updated to ${role}`, updatedUser);
+    return sendSuccess(res, 200, `User role successfully updated to ${role}`, updatedUser);
   } catch (error) {
     next(error);
   }

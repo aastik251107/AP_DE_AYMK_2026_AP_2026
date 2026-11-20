@@ -1,3 +1,17 @@
+// ============================================================================
+// 💰 LANDOWNER COMPENSATION & DISBURSEMENTS CONTROLLER (BEGINNER-FRIENDLY 🚀)
+// File: src/controllers/compensationController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "Idempotency, Express JS Request/Response, Prisma CRUD, Event-Driven Architecture"
+//
+// 💡 WHAT THIS CONTROLLER DOES:
+// 1. Lists financial compensation payouts per citizen landowner.
+// 2. Disburses government compensation payments.
+// 3. Integrates with our Idempotency Middleware to guarantee that no farmer or
+//    land parcel receives duplicate bank payouts even if an officer double-clicks!
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const eventBus = require('../services/eventBus');
@@ -5,9 +19,13 @@ const eventBus = require('../services/eventBus');
 const prisma = new PrismaClient();
 
 /**
- * Get Compensations with Filtering
+ * 1. GET COMPENSATIONS WITH FILTERING
  * GET /api/v1/compensations
- * Query params: status (PENDING, PAID), ownerId, acquisitionId
+ * Query params: ?status=PENDING&acquisitionId=1
+ * 
+ * 💡 RBAC ENFORCEMENT:
+ * If the user logged in is a citizen Landowner (`req.user.role === 'OWNER'`),
+ * we automatically restrict the query to return ONLY their own compensation records!
  */
 const getCompensations = async (req, res, next) => {
   try {
@@ -24,7 +42,7 @@ const getCompensations = async (req, res, next) => {
       where.ownerId = Number(ownerId);
     }
 
-    // If citizen OWNER role, restrict to their own records
+    // Citizen privacy: restrict citizen landowner to their own vouchers
     if (req.user.role === 'OWNER' && req.user.ownerProfile) {
       where.ownerId = req.user.ownerProfile.id;
     }
@@ -50,15 +68,16 @@ const getCompensations = async (req, res, next) => {
 };
 
 /**
- * Disburse / Pay Compensation (Idempotent Endpoint)
+ * 2. DISBURSE / PAY COMPENSATION (IDEMPOTENT ENDPOINT)
  * POST /api/v1/compensations/:id/pay
  * Access: ADMIN, OFFICER
- * Headers: Idempotency-Key: <unique-uuid> (optional but encouraged)
+ * Headers: Idempotency-Key: <unique-uuid> (optional but highly recommended!)
  */
 const disbursePayment = async (req, res, next) => {
   try {
     const compensationId = Number(req.params.id);
 
+    // Look up compensation record
     const comp = await prisma.compensation.findUnique({
       where: { id: compensationId },
       include: {
@@ -73,6 +92,7 @@ const disbursePayment = async (req, res, next) => {
       return sendError(res, 404, `Compensation record #${compensationId} not found.`);
     }
 
+    // Business rule: Cannot pay an already paid voucher!
     if (comp.paymentStatus === 'PAID') {
       return sendError(
         res,
@@ -81,7 +101,7 @@ const disbursePayment = async (req, res, next) => {
       );
     }
 
-    // Mark as PAID
+    // Mark as PAID and stamp current timestamp
     const updated = await prisma.compensation.update({
       where: { id: compensationId },
       data: {
@@ -94,7 +114,7 @@ const disbursePayment = async (req, res, next) => {
       }
     });
 
-    // Check if all compensations for this acquisition are now paid
+    // Check if ALL co-owners for this acquisition have now been paid
     const remainingUnpaid = await prisma.compensation.count({
       where: {
         acquisitionId: comp.acquisitionId,
@@ -102,7 +122,8 @@ const disbursePayment = async (req, res, next) => {
       }
     });
 
-    // If all are paid and acquisition is in VALUATED, auto-advance to COMPENSATED!
+    // 💡 AUTOMATED STATE TRANSITION:
+    // If all co-owners are paid, auto-advance acquisition status to 'COMPENSATED'!
     if (remainingUnpaid === 0 && comp.acquisition.status === 'VALUATED') {
       await prisma.acquisition.update({
         where: { id: comp.acquisitionId },
@@ -129,7 +150,7 @@ const disbursePayment = async (req, res, next) => {
       });
     }
 
-    // Emit Real-Time Domain Event
+    // Broadcast payout notification live to SSE subscribers
     eventBus.emitEvent('compensation:paid', {
       compensationId: updated.id,
       acquisitionId: updated.acquisitionId,
@@ -140,7 +161,12 @@ const disbursePayment = async (req, res, next) => {
       disbursedBy: req.user.name
     });
 
-    return sendSuccess(res, 200, `Compensation payment of ₹${updated.amount} disbursed successfully`, updated);
+    return sendSuccess(
+      res,
+      200,
+      `Compensation payment of ₹${updated.amount} disbursed successfully to ${comp.owner.fullName}`,
+      updated
+    );
   } catch (error) {
     next(error);
   }

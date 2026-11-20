@@ -1,28 +1,60 @@
+// ============================================================================
+// 🌱 DATABASE SEED SCRIPT (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: prisma/seed.js
+// ============================================================================
+// 💡 WHAT IS DATABASE SEEDING?
+// When you create a fresh database, it is completely empty.
+// "Seeding" means populating the database with initial realistic sample data
+// (like test government officers, farmers, parcels, and highway projects)
+// so that our team and professors can test all API endpoints immediately!
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
+// Initialize Prisma database client
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting Land Acquisition database seeding...');
 
-  // 1. Clean existing records (reverse dependency order)
-  await prisma.statusHistory.deleteMany();
-  await prisma.objection.deleteMany();
-  await prisma.compensation.deleteMany();
-  await prisma.acquisition.deleteMany();
-  await prisma.parcelOwner.deleteMany();
-  await prisma.parcel.deleteMany();
-  await prisma.project.deleteMany();
-  await prisma.owner.deleteMany();
-  await prisma.user.deleteMany();
+  // --------------------------------------------------------------------------
+  // STEP 1: CLEAN EXISTING RECORDS
+  // --------------------------------------------------------------------------
+  // 💡 WHY REVERSE ORDER?
+  // In relational databases, foreign keys prevent you from deleting a parent
+  // if children reference it! For example, you cannot delete a User if that User
+  // is linked to an Acquisition.
+  // Therefore, we delete child tables FIRST, and parent tables LAST:
+  await prisma.statusHistory.deleteMany(); // Child of Acquisition & User
+  await prisma.objection.deleteMany();     // Child of Acquisition & Owner
+  await prisma.compensation.deleteMany();  // Child of Acquisition & Owner
+  await prisma.acquisition.deleteMany();   // Child of Parcel, Project & User
+  await prisma.parcelOwner.deleteMany();   // Junction between Parcel & Owner
+  await prisma.parcel.deleteMany();        // Parent
+  await prisma.project.deleteMany();       // Parent
+  await prisma.owner.deleteMany();         // Parent
+  await prisma.user.deleteMany();          // Parent
 
-  console.log('🧹 Cleaned existing database tables.');
+  console.log('🧹 Cleaned existing database tables safely in reverse FK order.');
 
-  // Common password hash for test users
+  // --------------------------------------------------------------------------
+  // STEP 2: PREPARE SECURE HASHED PASSWORDS
+  // --------------------------------------------------------------------------
+  // 💡 WHY BCRYPT HASHING? (LECTURE TOPIC: Authentication Security)
+  // If an attacker or hacker gets access to the database, they should never see
+  // plain-text passwords. "bcrypt" adds random salt and runs 10 computational
+  // rounds so "password123" becomes an un-reversible string like:
+  // "$2a$10$abcdef123456...".
   const defaultPassword = await bcrypt.hash('password123', 10);
 
-  // 2. Insert Users (Admin, Officer, and Citizen Owners)
+  // --------------------------------------------------------------------------
+  // STEP 3: INSERT SYSTEM USERS (ADMIN, OFFICER, CITIZEN)
+  // --------------------------------------------------------------------------
+  // 💡 LECTURE TOPIC: Role-Based Access Control (RBAC)
+  // We create accounts for each role so we can test different authorization levels:
+
+  // Officer account (Can create parcels and manage acquisitions)
   const officerRavi = await prisma.user.create({
     data: {
       name: 'Officer Ravi',
@@ -32,6 +64,7 @@ async function main() {
     }
   });
 
+  // Administrator account (Has master permissions, can edit budgets and users)
   const adminSharma = await prisma.user.create({
     data: {
       name: 'Admin Sharma',
@@ -41,6 +74,7 @@ async function main() {
     }
   });
 
+  // Citizen Landowner accounts (Can log in to view their compensations and file grievances)
   const userSuresh = await prisma.user.create({
     data: {
       name: 'Suresh Reddy',
@@ -70,7 +104,12 @@ async function main() {
 
   console.log('👤 Created users: Admin Sharma, Officer Ravi, Suresh, Ramesh, Venkatesh');
 
-  // 3. Insert Landowners
+  // --------------------------------------------------------------------------
+  // STEP 4: REGISTER CITIZEN LANDOWNERS IN CADASTRAL REGISTRY
+  // --------------------------------------------------------------------------
+  // 💡 WHY A SEPARATE 'OWNER' TABLE? (LECTURE TOPIC: Normalization)
+  // Legal land ownership requires verified National ID (Aadhaar/PAN) and phone number.
+  // We link each Owner to their User login account using `userId`.
   const ownerSuresh = await prisma.owner.create({
     data: {
       fullName: 'Suresh Reddy',
@@ -100,7 +139,10 @@ async function main() {
 
   console.log('📜 Registered owners in cadastral registry');
 
-  // 4. Insert Land Parcels
+  // --------------------------------------------------------------------------
+  // STEP 5: INSERT LAND PARCELS
+  // --------------------------------------------------------------------------
+  // Parcel 1: Nandyal (10,000 sqm @ ₹500/sqm = ₹50,00,000 Total Valuation)
   const parcel1 = await prisma.parcel.create({
     data: {
       surveyNumber: 'P-101',
@@ -110,6 +152,7 @@ async function main() {
     }
   });
 
+  // Parcel 2: Allagadda (4,000 sqm @ ₹1,200/sqm = ₹48,00,000 Total Valuation)
   const parcel2 = await prisma.parcel.create({
     data: {
       surveyNumber: 'P-102',
@@ -121,8 +164,12 @@ async function main() {
 
   console.log('🏞️ Created parcels: P-101 (Nandyal), P-102 (Allagadda)');
 
-  // 5. Assign Parcel Ownership Shares
-  // P-101: Suresh (60%), Ramesh (40%)
+  // --------------------------------------------------------------------------
+  // STEP 6: ASSIGN PARCEL OWNERSHIP SHARES (MANY-TO-MANY BRIDGE)
+  // --------------------------------------------------------------------------
+  // 💡 LECTURE TOPIC: Many-to-Many Relations
+  // - Parcel P-101 is co-owned: Suresh (60%) + Ramesh (40%) = 100%
+  // - Parcel P-102 is sole-owned: Venkatesh (100%)
   await prisma.parcelOwner.create({
     data: {
       parcelId: parcel1.id,
@@ -139,7 +186,6 @@ async function main() {
     }
   });
 
-  // P-102: Venkatesh (100%)
   await prisma.parcelOwner.create({
     data: {
       parcelId: parcel2.id,
@@ -148,20 +194,26 @@ async function main() {
     }
   });
 
-  console.log('🤝 Assigned parcel ownership percentages');
+  console.log('🤝 Assigned parcel ownership percentages (Co-ownership)');
 
-  // 6. Insert Infrastructure Project
+  // --------------------------------------------------------------------------
+  // STEP 7: INSERT GOVERNMENT INFRASTRUCTURE PROJECT
+  // --------------------------------------------------------------------------
   const projectHighway = await prisma.project.create({
     data: {
       name: 'Highway NH-167',
       department: 'NHAI',
-      budget: 50000000.0
+      budget: 50000000.0 // ₹5 Crore
     }
   });
 
   console.log('🏗️ Created project: Highway NH-167 (NHAI)');
 
-  // 7. Initiate Acquisition for Parcel P-101
+  // --------------------------------------------------------------------------
+  // STEP 8: INITIATE LAND ACQUISITION WORKFLOW
+  // --------------------------------------------------------------------------
+  // 💡 LECTURE TOPIC: State Machine Workflow Engine
+  // We earmark Parcel P-101 for Highway NH-167. Current stage: VALUATED
   const acq1 = await prisma.acquisition.create({
     data: {
       parcelId: parcel1.id,
@@ -173,8 +225,13 @@ async function main() {
 
   console.log(`📋 Created acquisition #${acq1.id} for Parcel P-101`);
 
-  // 8. Compensations for Acquisition
-  // Suresh: 10,000 sqm * 500 * 60% = 3,000,000
+  // --------------------------------------------------------------------------
+  // STEP 9: GENERATE LANDOWNER COMPENSATIONS
+  // --------------------------------------------------------------------------
+  // 💡 MATHEMATICAL FORMULA:
+  // Parcel Valuation = 10,000 sqm * ₹500 = ₹50,00,000 (Fifty Lakhs)
+  // - Suresh Reddy (60%): ₹30,00,000 -> Status: PENDING
+  // - Ramesh Reddy (40%): ₹20,00,000 -> Status: PAID
   await prisma.compensation.create({
     data: {
       acquisitionId: acq1.id,
@@ -184,7 +241,6 @@ async function main() {
     }
   });
 
-  // Ramesh: 10,000 sqm * 500 * 40% = 2,000,000
   await prisma.compensation.create({
     data: {
       acquisitionId: acq1.id,
@@ -195,9 +251,12 @@ async function main() {
     }
   });
 
-  console.log('💰 Seeded compensations for Suresh and Ramesh');
+  console.log('💰 Seeded compensations: Suresh (Pending), Ramesh (Paid)');
 
-  // 9. Landowner Objection
+  // --------------------------------------------------------------------------
+  // STEP 10: CITIZEN GRIEVANCE / OBJECTION
+  // --------------------------------------------------------------------------
+  // Suresh Reddy raises an objection citing that market rates have gone up
   await prisma.objection.create({
     data: {
       acquisitionId: acq1.id,
@@ -207,9 +266,12 @@ async function main() {
     }
   });
 
-  console.log('⚠️ Filed initial objection from Suresh Reddy');
+  console.log('⚠️ Filed initial objection from Suresh Reddy (OPEN)');
 
-  // 10. Audit History
+  // --------------------------------------------------------------------------
+  // STEP 11: IMMUTABLE AUDIT TRAIL (STATUS HISTORY)
+  // --------------------------------------------------------------------------
+  // Audit log showing how acquisition progressed: PROPOSED -> NOTIFIED -> VALUATED
   await prisma.statusHistory.create({
     data: {
       acquisitionId: acq1.id,
@@ -229,14 +291,16 @@ async function main() {
   });
 
   console.log('📜 Seeded audit trail status history');
-  console.log('✅ Database seeding complete!');
+  console.log('✅ Database seeding complete! Ready for testing.');
 }
 
+// Execute the main function and handle errors
 main()
   .catch((e) => {
     console.error('❌ Error during seeding:', e);
     process.exit(1);
   })
   .finally(async () => {
+    // Always disconnect Prisma client when script finishes to free connection pool
     await prisma.$disconnect();
   });

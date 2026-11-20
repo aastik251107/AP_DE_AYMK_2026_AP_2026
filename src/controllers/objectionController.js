@@ -1,3 +1,18 @@
+// ============================================================================
+// ⚖️ CITIZEN GRIEVANCES & OBJECTIONS CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/controllers/objectionController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "REST APIs, Role Based Authorisation, EventEmitter, Observer Pattern"
+//
+// 💡 WHAT THIS CONTROLLER DOES:
+// 1. Allows citizen landowners to formally file legal disputes/objections
+//    (e.g., "Market circle rate was updated, compensation is too low").
+// 2. Verifies that the citizen actually owns an ownership share in that parcel
+//    before allowing them to file.
+// 3. Allows Land Officers to review, settle, or reject grievances.
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const eventBus = require('../services/eventBus');
@@ -5,9 +20,10 @@ const eventBus = require('../services/eventBus');
 const prisma = new PrismaClient();
 
 /**
- * File a Landowner Grievance / Objection
+ * 1. FILE A CITIZEN GRIEVANCE / OBJECTION
  * POST /api/v1/objections
  * Access: OWNER, OFFICER, ADMIN
+ * Body: { acquisitionId, reason, ownerId? }
  */
 const fileObjection = async (req, res, next) => {
   try {
@@ -19,21 +35,23 @@ const fileObjection = async (req, res, next) => {
 
     const acqId = Number(acquisitionId);
 
-    // Resolve ownerId: If authenticated as OWNER, enforce their own profile ID
+    // Determine target owner:
+    // If authenticated as citizen OWNER, enforce their own profile ID
     let targetOwnerId;
     if (req.user.role === 'OWNER') {
       if (!req.user.ownerProfile) {
-        return sendError(res, 403, 'Your account does not have a linked landowner profile.');
+        return sendError(res, 403, 'Your citizen user account does not have a linked landowner profile.');
       }
       targetOwnerId = req.user.ownerProfile.id;
     } else {
+      // If Officer or Admin is filing on behalf of a citizen, require ownerId
       if (!ownerId) {
-        return sendError(res, 400, 'Staff must specify ownerId for filing on citizen behalf.');
+        return sendError(res, 400, 'Staff filing an objection must specify the citizen ownerId.');
       }
       targetOwnerId = Number(ownerId);
     }
 
-    // Verify acquisition exists and get its parcel
+    // Verify acquisition exists and load parcel co-owners
     const acquisition = await prisma.acquisition.findUnique({
       where: { id: acqId },
       include: {
@@ -48,17 +66,20 @@ const fileObjection = async (req, res, next) => {
       return sendError(res, 404, `Acquisition #${acqId} not found.`);
     }
 
-    // Validate that the landowner actually owns part of this parcel
-    const isOwnerOfParcel = acquisition.parcel.parcelOwners.some((po) => po.ownerId === targetOwnerId);
+    // 💡 ANTI-FRAUD VALIDATION:
+    // Verify that the citizen actually holds an ownership share in this specific parcel!
+    const isOwnerOfParcel = acquisition.parcel.parcelOwners.some(
+      (po) => po.ownerId === targetOwnerId
+    );
     if (!isOwnerOfParcel) {
       return sendError(
         res,
         403,
-        `Landowner #${targetOwnerId} does not hold an ownership share in Parcel #${acquisition.parcelId} (${acquisition.parcel.surveyNumber}). Cannot file objection.`
+        `Forbidden: Citizen #${targetOwnerId} does not hold an ownership share in Parcel #${acquisition.parcelId} (${acquisition.parcel.surveyNumber}). Cannot file objection.`
       );
     }
 
-    // Create objection
+    // Create objection record in database with initial status 'OPEN'
     const objection = await prisma.objection.create({
       data: {
         acquisitionId: acqId,
@@ -74,7 +95,7 @@ const fileObjection = async (req, res, next) => {
       }
     });
 
-    // Emit Real-Time Domain Event
+    // Broadcast grievance live to officers on the EventBus
     eventBus.emitEvent('objection:filed', {
       objectionId: objection.id,
       acquisitionId: acqId,
@@ -92,9 +113,9 @@ const fileObjection = async (req, res, next) => {
 };
 
 /**
- * Get all Objections with Filtering
+ * 2. GET OBJECTIONS WITH FILTERING
  * GET /api/v1/objections
- * Query params: status (OPEN, UNDER_REVIEW, RESOLVED, REJECTED), acquisitionId
+ * Query params: ?status=OPEN&acquisitionId=1
  */
 const getObjections = async (req, res, next) => {
   try {
@@ -108,7 +129,7 @@ const getObjections = async (req, res, next) => {
       where.acquisitionId = Number(acquisitionId);
     }
 
-    // If citizen OWNER, only return their own objections
+    // Citizen privacy: citizen landowners see only their own grievances
     if (req.user.role === 'OWNER' && req.user.ownerProfile) {
       where.ownerId = req.user.ownerProfile.id;
     }
@@ -131,9 +152,10 @@ const getObjections = async (req, res, next) => {
 };
 
 /**
- * Review / Resolve Objection
+ * 3. REVIEW OR RESOLVE OBJECTION
  * PATCH /api/v1/objections/:id/status
  * Access: ADMIN, OFFICER
+ * Body: { status: "UNDER_REVIEW" | "RESOLVED" | "REJECTED", resolutionNotes? }
  */
 const updateObjectionStatus = async (req, res, next) => {
   try {
@@ -142,7 +164,11 @@ const updateObjectionStatus = async (req, res, next) => {
 
     const validStatuses = ['OPEN', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'];
     if (!validStatuses.includes(status)) {
-      return sendError(res, 400, `Invalid objection status. Must be one of: [${validStatuses.join(', ')}]`);
+      return sendError(
+        res,
+        400,
+        `Invalid objection status. Must be one of: [${validStatuses.join(', ')}]`
+      );
     }
 
     const objection = await prisma.objection.findUnique({
@@ -156,6 +182,7 @@ const updateObjectionStatus = async (req, res, next) => {
 
     const updateData = {
       status,
+      // Record resolved timestamp if resolving or rejecting
       resolvedAt: ['RESOLVED', 'REJECTED'].includes(status) ? new Date() : null
     };
 
@@ -165,7 +192,7 @@ const updateObjectionStatus = async (req, res, next) => {
       include: { owner: true, acquisition: true }
     });
 
-    // Emit Real-Time Domain Event
+    // Broadcast resolution event to SSE stream
     eventBus.emitEvent('objection:resolved', {
       objectionId,
       acquisitionId: updated.acquisitionId,
@@ -173,7 +200,7 @@ const updateObjectionStatus = async (req, res, next) => {
       ownerName: objection.owner.fullName,
       newStatus: status,
       resolvedBy: req.user.name,
-      resolutionNotes: resolutionNotes || 'Status updated by officer'
+      resolutionNotes: resolutionNotes || 'Status updated by authorized officer'
     });
 
     return sendSuccess(res, 200, `Objection status updated to '${status}'`, updated);

@@ -1,24 +1,44 @@
+// ============================================================================
+// 🏗️ INFRASTRUCTURE PROJECTS CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/controllers/projectController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "REST API(s), Resource Based URL(s), Prisma CRUD, Prisma Relation Filtering"
+//
+// 💡 WHAT THIS CONTROLLER DOES:
+// Manages public infrastructure schemes (Highway NH-167, Metro, Canals) that
+// require land acquisition. Tracks total allocated public budget and calculates
+// how much money has been committed to compensation vouchers.
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
 
 /**
- * Create a new Government Infrastructure Project
+ * 1. CREATE A NEW INFRASTRUCTURE PROJECT
  * POST /api/v1/projects
  * Access: ADMIN, OFFICER
+ * Body: { name, department, budget }
  */
 const createProject = async (req, res, next) => {
   try {
     const { name, department, budget } = req.body;
 
+    // Validate presence of required fields
     if (!name || !department || budget === undefined) {
-      return sendError(res, 400, 'Please provide project name, department, and allocated budget.');
+      return sendError(
+        res,
+        400,
+        'Please provide project name, government department, and allocated budget.'
+      );
     }
 
+    // Parse and validate non-negative budget
     const numericBudget = parseFloat(budget);
     if (isNaN(numericBudget) || numericBudget < 0) {
-      return sendError(res, 400, 'Budget must be a non-negative number.');
+      return sendError(res, 400, 'Budget must be a valid non-negative number.');
     }
 
     const project = await prisma.project.create({
@@ -36,8 +56,13 @@ const createProject = async (req, res, next) => {
 };
 
 /**
- * Get all Projects
+ * 2. GET ALL PROJECTS WITH OPTIONAL FILTERING
  * GET /api/v1/projects
+ * Query params: ?department=NHAI&search=Highway
+ * 
+ * 💡 LECTURE TOPIC: Prisma Relation Filtering & Counts
+ * `_count: { select: { acquisitions: true } }` counts how many land parcels
+ * are currently linked to this project without having to load all records!
  */
 const getProjects = async (req, res, next) => {
   try {
@@ -68,8 +93,13 @@ const getProjects = async (req, res, next) => {
 };
 
 /**
- * Get Project by ID with full details & acquisition pipeline
+ * 3. GET PROJECT BY ID (WITH FULL BUDGET AUDIT)
  * GET /api/v1/projects/:id
+ * 
+ * 💡 BUSINESS LOGIC:
+ * Calculates total compensation committed across all acquisitions, and computes
+ * the remaining available project budget:
+ * `remainingBudget = project.budget - totalCompensationCommitted`
  */
 const getProjectById = async (req, res, next) => {
   try {
@@ -92,7 +122,7 @@ const getProjectById = async (req, res, next) => {
       return sendError(res, 404, `Project with ID ${projectId} not found.`);
     }
 
-    // Calculate budget utilization from compensations
+    // Compute sum of all compensation money committed
     let totalCompensationCommitted = 0;
     project.acquisitions.forEach((acq) => {
       acq.compensations.forEach((comp) => {
@@ -113,7 +143,7 @@ const getProjectById = async (req, res, next) => {
 };
 
 /**
- * Update Project
+ * 4. UPDATE PROJECT
  * PUT /api/v1/projects/:id
  * Access: ADMIN
  */
@@ -145,15 +175,17 @@ const updateProject = async (req, res, next) => {
 };
 
 /**
- * Delete Project
+ * 5. DELETE PROJECT (SAFE DELETION)
  * DELETE /api/v1/projects/:id
  * Access: ADMIN
+ * 
+ * 💡 REFERENTIAL INTEGRITY CHECK:
+ * We prevent accidental deletion if land parcels are already actively being acquired!
  */
 const deleteProject = async (req, res, next) => {
   try {
     const projectId = Number(req.params.id);
 
-    // Check if project has active acquisitions
     const acqCount = await prisma.acquisition.count({
       where: { projectId }
     });
@@ -162,7 +194,7 @@ const deleteProject = async (req, res, next) => {
       return sendError(
         res,
         400,
-        `Cannot delete project: It has ${acqCount} linked land acquisitions. Remove them first.`
+        `Cannot delete project #${projectId}: It is linked to ${acqCount} active land acquisitions. Please cancel or remove them first.`
       );
     }
 

@@ -1,19 +1,39 @@
+// ============================================================================
+// 🏞️ CADASTRAL PARCELS & OWNERSHIP CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/controllers/parcelController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "Prisma Database Relations, Prisma CRUD, Many-to-Many Relationships"
+//
+// 💡 WHAT THIS CONTROLLER DOES:
+// 1. Registers land parcels with official revenue survey numbers and circle rates.
+// 2. Calculates total parcel valuation: `area_sqm * market_rate_per_sqm`.
+// 3. Manages co-ownership percentage shares (resolving the Many-to-Many relationship
+//    between Parcels and Landowners).
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
 
 /**
- * Create a new Land Parcel
+ * 1. REGISTER A NEW LAND PARCEL
  * POST /api/v1/parcels
  * Access: ADMIN, OFFICER
+ * Body: { surveyNumber, village, areaSqm, marketRatePerSqm, owners? }
  */
 const createParcel = async (req, res, next) => {
   try {
     const { surveyNumber, village, areaSqm, marketRatePerSqm, owners } = req.body;
 
+    // Validate inputs
     if (!surveyNumber || !village || areaSqm === undefined || marketRatePerSqm === undefined) {
-      return sendError(res, 400, 'Please provide surveyNumber, village, areaSqm, and marketRatePerSqm.');
+      return sendError(
+        res,
+        400,
+        'Please provide surveyNumber, village name, areaSqm, and marketRatePerSqm.'
+      );
     }
 
     const area = parseFloat(areaSqm);
@@ -23,14 +43,19 @@ const createParcel = async (req, res, next) => {
       return sendError(res, 400, 'Area (sqm) and market rate must be greater than zero.');
     }
 
-    // Check unique survey number
+    // Check if survey number is already registered in cadastral database
     const existing = await prisma.parcel.findUnique({
       where: { surveyNumber }
     });
     if (existing) {
-      return sendError(res, 409, `A parcel with survey number '${surveyNumber}' is already registered.`);
+      return sendError(
+        res,
+        409,
+        `Conflict: A parcel with survey number '${surveyNumber}' is already registered.`
+      );
     }
 
+    // Create the parcel record
     const parcel = await prisma.parcel.create({
       data: {
         surveyNumber,
@@ -40,7 +65,7 @@ const createParcel = async (req, res, next) => {
       }
     });
 
-    // Optionally assign initial owners if supplied in request body: [{ ownerId: 1, sharePercent: 100 }]
+    // If initial owners were provided, assign them
     if (Array.isArray(owners) && owners.length > 0) {
       let totalShare = 0;
       for (const o of owners) {
@@ -77,9 +102,9 @@ const createParcel = async (req, res, next) => {
 };
 
 /**
- * Get all Parcels with filtering
+ * 2. GET ALL PARCELS WITH FILTERING
  * GET /api/v1/parcels
- * Query params: village, minArea, maxRate, search
+ * Query params: ?village=Nandyal&search=P-101&minArea=2000&maxRate=1500
  */
 const getParcels = async (req, res, next) => {
   try {
@@ -99,6 +124,7 @@ const getParcels = async (req, res, next) => {
       where.marketRatePerSqm = { lte: parseFloat(maxRate) };
     }
 
+    // Fetch parcels with their relational owners and active acquisitions
     const parcels = await prisma.parcel.findMany({
       where,
       include: {
@@ -116,7 +142,8 @@ const getParcels = async (req, res, next) => {
       orderBy: { id: 'asc' }
     });
 
-    // Enrich each parcel with computed Total Value
+    // 💡 MATHEMATICAL CALCULATION:
+    // Compute total parcel market valuation: Area (sqm) * Circle Rate (₹/sqm)
     const enriched = parcels.map((p) => ({
       ...p,
       totalValuation: p.areaSqm * p.marketRatePerSqm
@@ -129,7 +156,7 @@ const getParcels = async (req, res, next) => {
 };
 
 /**
- * Get Parcel by ID
+ * 3. GET PARCEL BY ID
  * GET /api/v1/parcels/:id
  */
 const getParcelById = async (req, res, next) => {
@@ -169,9 +196,13 @@ const getParcelById = async (req, res, next) => {
 };
 
 /**
- * Assign or Update Owner Share on a Parcel (Many-to-Many Bridge)
+ * 4. ASSIGN OR UPDATE CO-OWNERSHIP SHARE (MANY-TO-MANY JUNCTION)
  * POST /api/v1/parcels/:id/owners
  * Access: ADMIN, OFFICER
+ * Body: { ownerId, sharePercent }
+ * 
+ * 💡 BUSINESS VALIDATION:
+ * The sum of shares across all co-owners of a parcel must NEVER exceed 100%!
  */
 const assignOwnerShare = async (req, res, next) => {
   try {
@@ -187,7 +218,7 @@ const assignOwnerShare = async (req, res, next) => {
       return sendError(res, 400, 'Share percentage must be between 0.01% and 100.00%.');
     }
 
-    // Verify parcel and owner exist
+    // Verify both parcel and owner exist
     const [parcel, owner] = await Promise.all([
       prisma.parcel.findUnique({ where: { id: parcelId } }),
       prisma.owner.findUnique({ where: { id: Number(ownerId) } })
@@ -196,15 +227,15 @@ const assignOwnerShare = async (req, res, next) => {
     if (!parcel) return sendError(res, 404, `Parcel #${parcelId} not found.`);
     if (!owner) return sendError(res, 404, `Landowner #${ownerId} not found.`);
 
-    // Check existing shares to ensure total <= 100%
-    const existingShares = await prisma.parcelOwner.findMany({
+    // Check existing shares held by other co-owners
+    const otherOwners = await prisma.parcelOwner.findMany({
       where: {
         parcelId,
         NOT: { ownerId: Number(ownerId) }
       }
     });
 
-    const otherSharesTotal = existingShares.reduce((sum, item) => sum + item.sharePercent, 0);
+    const otherSharesTotal = otherOwners.reduce((sum, item) => sum + item.sharePercent, 0);
     if (otherSharesTotal + share > 100.001) {
       return sendError(
         res,
@@ -213,7 +244,9 @@ const assignOwnerShare = async (req, res, next) => {
       );
     }
 
-    // Upsert into ParcelOwner junction table
+    // 💡 PRISMA UPSERT:
+    // If the owner is already assigned to this parcel, UPDATE their share.
+    // If not, CREATE a new row in the junction table!
     const assignment = await prisma.parcelOwner.upsert({
       where: {
         parcelId_ownerId: {
@@ -237,7 +270,7 @@ const assignOwnerShare = async (req, res, next) => {
 };
 
 /**
- * Register a new Citizen Landowner
+ * 5. REGISTER A NEW CITIZEN LANDOWNER
  * POST /api/v1/parcels/owners/register
  */
 const registerOwner = async (req, res, next) => {
@@ -259,7 +292,7 @@ const registerOwner = async (req, res, next) => {
 };
 
 /**
- * Get all Registered Landowners
+ * 6. GET ALL REGISTERED CITIZEN LANDOWNERS
  * GET /api/v1/parcels/owners/list
  */
 const getOwnersList = async (req, res, next) => {

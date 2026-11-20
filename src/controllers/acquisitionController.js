@@ -1,22 +1,41 @@
+// ============================================================================
+// 📋 LAND ACQUISITION WORKFLOW ENGINE CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/controllers/acquisitionController.js
+// ============================================================================
+// 💡 LECTURE TOPIC:
+// "State Machine Workflow, Audit Trail, EventEmitter, Observer Pattern, REST APIs"
+//
+// 💡 WHAT IS A FINITE STATE MACHINE (FSM)? (THE "TRAIN JOURNEY" ANALOGY):
+// A train must stop at Station 1, then Station 2, then Station 3. It cannot teleport!
+// Similarly, Land Acquisition has 5 strict legal stages:
+//
+// 1. PROPOSED: Government identifies parcel for project.
+// 2. NOTIFIED: Official legal notice published in Gazette & sent to farmers.
+// 3. VALUATED: Revenue valuation calculated based on area, rate, and shares.
+// 4. COMPENSATED: Financial payouts disbursed to all co-owners.
+// 5. COMPLETED: Land title transferred to Government infrastructure department!
+// ============================================================================
+
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const eventBus = require('../services/eventBus');
 
 const prisma = new PrismaClient();
 
-// Valid state machine transitions
+// Permitted legal transitions in our workflow state machine
 const VALID_TRANSITIONS = {
   PROPOSED: ['NOTIFIED'],
   NOTIFIED: ['VALUATED', 'PROPOSED'],
   VALUATED: ['COMPENSATED', 'NOTIFIED'],
   COMPENSATED: ['COMPLETED', 'VALUATED'],
-  COMPLETED: []
+  COMPLETED: [] // Terminal stage: No further transitions allowed
 };
 
 /**
- * Initiate a new Land Acquisition Workflow
+ * 1. INITIATE A NEW LAND ACQUISITION WORKFLOW
  * POST /api/v1/acquisitions
  * Access: ADMIN, OFFICER
+ * Body: { parcelId, projectId }
  */
 const createAcquisition = async (req, res, next) => {
   try {
@@ -29,7 +48,7 @@ const createAcquisition = async (req, res, next) => {
     const pId = Number(parcelId);
     const prId = Number(projectId);
 
-    // Verify parcel and project exist
+    // Verify both parcel and project exist in database
     const [parcel, project] = await Promise.all([
       prisma.parcel.findUnique({
         where: { id: pId },
@@ -38,14 +57,15 @@ const createAcquisition = async (req, res, next) => {
       prisma.project.findUnique({ where: { id: prId } })
     ]);
 
-    if (!parcel) return sendError(res, 404, `Parcel #${pId} not found.`);
+    if (!parcel) return sendError(res, 404, `Parcel #${pId} not found in cadastral registry.`);
     if (!project) return sendError(res, 404, `Project #${prId} not found.`);
 
+    // Business check: parcel must have registered owners before acquisition can start
     if (parcel.parcelOwners.length === 0) {
       return sendError(res, 400, `Cannot acquire parcel #${pId}: No owners assigned yet.`);
     }
 
-    // Check if parcel is already being acquired for this project
+    // Check unique constraint: cannot acquire the same parcel twice for the same project
     const existing = await prisma.acquisition.findUnique({
       where: {
         uq_parcel_project: {
@@ -63,7 +83,7 @@ const createAcquisition = async (req, res, next) => {
       );
     }
 
-    // Create acquisition record with default status PROPOSED
+    // Create acquisition record with initial status 'PROPOSED'
     const acquisition = await prisma.acquisition.create({
       data: {
         parcelId: pId,
@@ -78,7 +98,7 @@ const createAcquisition = async (req, res, next) => {
       }
     });
 
-    // Create initial audit history record
+    // 💡 AUDIT TRAIL: Write the initial record into StatusHistory
     await prisma.statusHistory.create({
       data: {
         acquisitionId: acquisition.id,
@@ -88,7 +108,7 @@ const createAcquisition = async (req, res, next) => {
       }
     });
 
-    // Emit Real-Time Domain Event
+    // 💡 REAL-TIME BROADCAST: Emit event via our Observer Pattern EventBus!
     eventBus.emitEvent('acquisition:created', {
       acquisitionId: acquisition.id,
       parcelId: pId,
@@ -105,9 +125,9 @@ const createAcquisition = async (req, res, next) => {
 };
 
 /**
- * Get all Acquisitions with Relational Filtering
+ * 2. GET ALL ACQUISITIONS WITH RELATIONAL FILTERING
  * GET /api/v1/acquisitions
- * Filters: status, projectId, village, officerId
+ * Query params: ?status=VALUATED&village=Nandyal&projectId=1
  */
 const getAcquisitions = async (req, res, next) => {
   try {
@@ -152,7 +172,7 @@ const getAcquisitions = async (req, res, next) => {
 };
 
 /**
- * Get detailed Acquisition by ID
+ * 3. GET ACQUISITION BY ID (WITH FULL AUDIT TIMELINE)
  * GET /api/v1/acquisitions/:id
  */
 const getAcquisitionById = async (req, res, next) => {
@@ -195,9 +215,10 @@ const getAcquisitionById = async (req, res, next) => {
 };
 
 /**
- * Update Acquisition Status (Workflow Engine State Machine Transition)
+ * 4. ADVANCE ACQUISITION WORKFLOW STAGE (THE STATE MACHINE)
  * PATCH /api/v1/acquisitions/:id/status
  * Access: ADMIN, OFFICER
+ * Body: { newStatus: "NOTIFIED" | "VALUATED" | "COMPENSATED" | "COMPLETED" }
  */
 const updateStatus = async (req, res, next) => {
   try {
@@ -235,7 +256,8 @@ const updateStatus = async (req, res, next) => {
       return sendError(res, 400, `Acquisition #${acquisitionId} is already in status '${newStatus}'.`);
     }
 
-    // State machine check
+    // 💡 STATE MACHINE ENFORCEMENT:
+    // Only permit valid sequential transitions (unless ADMIN override)
     const allowedNext = VALID_TRANSITIONS[oldStatus] || [];
     if (!allowedNext.includes(newStatus) && req.user.role !== 'ADMIN') {
       return sendError(
@@ -247,7 +269,8 @@ const updateStatus = async (req, res, next) => {
       );
     }
 
-    // Business Rule: Cannot complete if there are unresolved open objections!
+    // 💡 ANTI-CORRUPTION RULE 1:
+    // Cannot mark acquisition as COMPLETED if citizen grievances/objections are still pending!
     if (newStatus === 'COMPLETED') {
       const openObjections = currentAcquisition.objections.filter(
         (o) => o.status === 'OPEN' || o.status === 'UNDER_REVIEW'
@@ -256,7 +279,7 @@ const updateStatus = async (req, res, next) => {
         return sendError(
           res,
           400,
-          `Cannot mark acquisition as COMPLETED: There are ${openObjections.length} pending objection(s) that must be resolved first.`
+          `Cannot mark acquisition as COMPLETED: There are ${openObjections.length} pending citizen grievance(s) that must be resolved first.`
         );
       }
 
@@ -273,7 +296,8 @@ const updateStatus = async (req, res, next) => {
       }
     }
 
-    // Business Rule: When advancing to VALUATED, auto-generate compensations for all owners if not already generated!
+    // 💡 AUTOMATED WORKFLOW RULE 2:
+    // When advancing to 'VALUATED', auto-generate compensation vouchers for all co-owners!
     if (newStatus === 'VALUATED' && currentAcquisition.compensations.length === 0) {
       const { areaSqm, marketRatePerSqm } = currentAcquisition.parcel;
       const totalValuation = areaSqm * marketRatePerSqm;
@@ -292,7 +316,7 @@ const updateStatus = async (req, res, next) => {
       console.log(`💰 Auto-generated compensations for Acquisition #${acquisitionId}`);
     }
 
-    // Update acquisition status
+    // Update status in database
     const updated = await prisma.acquisition.update({
       where: { id: acquisitionId },
       data: { status: newStatus },
@@ -304,7 +328,7 @@ const updateStatus = async (req, res, next) => {
       }
     });
 
-    // Record immutable audit history
+    // Write immutable record in StatusHistory
     await prisma.statusHistory.create({
       data: {
         acquisitionId,
@@ -314,7 +338,7 @@ const updateStatus = async (req, res, next) => {
       }
     });
 
-    // Emit Real-Time Domain Event to EventBus
+    // Broadcast update live to all connected SSE clients
     eventBus.emitEvent('acquisition:status_changed', {
       acquisitionId,
       parcelSurvey: currentAcquisition.parcel.surveyNumber,

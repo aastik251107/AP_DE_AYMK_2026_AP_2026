@@ -1,3 +1,9 @@
+// ============================================================================
+// 🛣️ INFRASTRUCTURE PROJECT ROUTES (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/routes/projectRoutes.js
+// Mounted under: /api/v1/projects
+// ============================================================================
+
 const express = require('express');
 const {
   createProject,
@@ -11,12 +17,11 @@ const { authorize } = require('../middlewares/roleMiddleware');
 
 const router = express.Router();
 
-/**
- * Government Infrastructure Projects Endpoints
- * Base Path: /api/v1/projects
- */
+// Publicly viewable project schemes
 router.get('/', getProjects);
 router.get('/:id', getProjectById);
+
+// Staff-only mutation actions
 router.post('/', authenticate, authorize('ADMIN', 'OFFICER'), createProject);
 router.put('/:id', authenticate, authorize('ADMIN'), updateProject);
 router.delete('/:id', authenticate, authorize('ADMIN'), deleteProject);

@@ -1,51 +1,103 @@
 // ============================================================================
-// Prisma Schema: Real-Time Land Acquisition & Management System
-// Aligned with team database normalization (01_normalization.md & 03_schema.sql)
+// 📘 PRISMA DATABASE SCHEMA (BEGINNER-FRIENDLY GUIDE 🚀)
+// Project: Real-Time Land Acquisition & Management System
+// Authors: Team AYMK (Aastik, Yashmeet, Mann, Krishna)
+// ============================================================================
+//
+// 💡 WHAT IS PRISMA?
+// In raw databases, you write SQL queries by hand (like SELECT * FROM users).
+// Prisma is an "ORM" (Object-Relational Mapping) tool. It lets us write models
+// in this clean schema file, and automatically gives us safe, easy JavaScript
+// functions like: prisma.user.findMany() or prisma.parcel.create()!
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// 1. GENERATOR CONFIGURATION
+// ----------------------------------------------------------------------------
+// WHY: Tells Prisma to generate the JavaScript client library into node_modules.
+// Whenever we change this schema and run `npx prisma db push`, Prisma rebuilds
+// the JavaScript methods so our code autocomplete works in VS Code / IDE.
 generator client {
   provider = "prisma-client-js"
 }
 
+// ----------------------------------------------------------------------------
+// 2. DATASOURCE CONFIGURATION
+// ----------------------------------------------------------------------------
+// WHY: Tells Prisma which database engine we are using and where it lives.
+// - For Beginners/Development: We use "sqlite" with a local file (dev.db).
+//   No server setup or passwords needed—anyone on the team can run it instantly!
+// - For Production: Change provider to "postgresql" and point url to your Postgres server.
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-  // Note: To use PostgreSQL in production, change provider to "postgresql"
-  // and update DATABASE_URL in .env (e.g., postgresql://postgres:postgres@localhost:5432/land_acquisition)
 }
 
+// ============================================================================
+// 📦 DATABASE MODELS (OUR NORMALIZED TABLES)
+// Each model below represents one table in the database.
+// ============================================================================
+
 // ----------------------------------------------------------------------------
-// Table 1: User (System logins, Staff roles, & Citizen accounts)
-// Roles: ADMIN, OFFICER, OWNER
+// TABLE 1: User (System Logins & Roles)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// We need to know WHO is logging into the system. Are they an Admin, a Land Officer,
+// or a Citizen Landowner?
+//
+// LECTURE TOPIC: Authentication & Role-Based Access Control (RBAC)
 model User {
+  // @id = Primary Key. @default(autoincrement()) = Database gives each new user 1, 2, 3...
   id            Int             @id @default(autoincrement())
+  
+  // User's display name (e.g., "Officer Ravi")
   name          String
+  
+  // @unique = Database enforces that no two people can register with the same email!
   email         String          @unique
+  
+  // Hashed password using bcrypt (we NEVER store plain-text passwords!)
   password      String
-  role          String          @default("OFFICER") // ADMIN, OFFICER, OWNER
+  
+  // Role: ADMIN, OFFICER, or OWNER (Default role is OFFICER)
+  role          String          @default("OFFICER")
+  
+  // @default(now()) = Database automatically writes the current date and time
   createdAt     DateTime        @default(now())
   
-  // Relations
+  // --- RELATIONS (CONNECTIONS TO OTHER TABLES) ---
+  // One-to-Many: One officer can initiate multiple land acquisitions
   acquisitions  Acquisition[]   @relation("UserAcquisitions")
+  
+  // One-to-Many: One user can make multiple status transitions in the audit log
   statusChanges StatusHistory[] @relation("UserStatusChanges")
+  
+  // One-to-One: If this user is a Citizen Landowner, they link to their Owner profile
   ownerProfile  Owner?          @relation("UserOwnerProfile")
 
+  // @@map("users") = Renames the SQL table to lowercase 'users'
   @@map("users")
 }
 
 // ----------------------------------------------------------------------------
-// Table 2: Owner (Citizen Landowner Registry)
+// TABLE 2: Owner (Citizen Landowner Registry)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// In land acquisition, a citizen owns land regardless of whether they have a
+// website login account yet. This table stores legal citizen identity.
 model Owner {
   id            Int             @id @default(autoincrement())
   fullName      String          @map("full_name")
   phone         String
-  idNumber      String          @unique @map("id_number") // Aadhaar, PAN, etc.
+  
+  // Aadhaar, PAN card, or Voter ID number (Must be unique!)
+  idNumber      String          @unique @map("id_number")
+  
+  // Optional link to User login table (if the farmer creates a portal account)
   userId        Int?            @unique @map("user_id")
   createdAt     DateTime        @default(now()) @map("created_at")
 
-  // Relations
+  // --- RELATIONS ---
   user          User?           @relation("UserOwnerProfile", fields: [userId], references: [id], onDelete: SetNull)
   parcelOwners  ParcelOwner[]
   compensations Compensation[]
@@ -55,33 +107,42 @@ model Owner {
 }
 
 // ----------------------------------------------------------------------------
-// Table 3: Project (Government Public Infrastructure Schemes)
+// TABLE 3: Project (Government Infrastructure Schemes)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// Why is land being acquired? For a Highway, Metro Line, or Canal project!
+// We store the scheme name, government department, and allocated public budget.
 model Project {
   id           Int           @id @default(autoincrement())
-  name         String
-  department   String
-  budget       Float
+  name         String        // e.g. "Highway NH-167"
+  department   String        // e.g. "NHAI"
+  budget       Float         // Total funds allocated in INR (e.g. 5,00,00,000)
   createdAt    DateTime      @default(now()) @map("created_at")
 
-  // Relations
+  // --- RELATIONS ---
+  // One-to-Many: A project needs many land parcels to be acquired
   acquisitions Acquisition[]
 
   @@map("projects")
 }
 
 // ----------------------------------------------------------------------------
-// Table 4: Parcel (Cadastral Land Parcel Registry)
+// TABLE 4: Parcel (Cadastral Land Parcel Registry)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// Represents the actual physical plot of land in the revenue department survey.
+// LECTURE TOPIC: Normalization (Separating land properties from owners)
 model Parcel {
   id               Int           @id @default(autoincrement())
+  
+  // Official government survey number (e.g., "P-101"). Must be unique!
   surveyNumber     String        @unique @map("survey_number")
-  village          String
-  areaSqm          Float         @map("area_sqm")
-  marketRatePerSqm Float         @map("market_rate_per_sqm")
+  village          String        // Village / Mandal where the land is located
+  areaSqm          Float         @map("area_sqm") // Land area in square meters
+  marketRatePerSqm Float         @map("market_rate_per_sqm") // Official circle rate per sqm
   createdAt        DateTime      @default(now()) @map("created_at")
 
-  // Relations
+  // --- RELATIONS ---
   parcelOwners     ParcelOwner[]
   acquisitions     Acquisition[]
 
@@ -89,36 +150,53 @@ model Parcel {
 }
 
 // ----------------------------------------------------------------------------
-// Table 5: ParcelOwner (Many-to-Many Bridge Table with Share Percentage)
+// TABLE 5: ParcelOwner (Many-to-Many Junction / Bridge Table)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS (CRITICAL LECTURE TOPIC: Database Normalization):
+// - One parcel can be co-owned by MULTIPLE brothers or partners (e.g., 60% and 40%).
+// - One farmer can own MULTIPLE parcels across different villages.
+// This is a Many-to-Many relationship! We resolve it using a bridge table with
+// the exact `sharePercent` each owner holds.
 model ParcelOwner {
   parcelId     Int      @map("parcel_id")
   ownerId      Int      @map("owner_id")
+  
+  // Ownership share percentage: 0.01% to 100.00%
   sharePercent Float    @map("share_percent")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  // Relations
+  // --- RELATIONS ---
+  // onDelete: Cascade means: If a parcel is deleted, remove its ownership mappings automatically
   parcel       Parcel   @relation(fields: [parcelId], references: [id], onDelete: Cascade)
   owner        Owner    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  // @@id([parcelId, ownerId]) = Composite Primary Key!
+  // Guarantees that the same owner cannot be added twice to the same parcel!
   @@id([parcelId, ownerId])
   @@map("parcel_owners")
 }
 
 // ----------------------------------------------------------------------------
-// Table 6: Acquisition (Workflow Engine for Land Acquisition)
-// Statuses: PROPOSED, NOTIFIED, VALUATED, COMPENSATED, COMPLETED
+// TABLE 6: Acquisition (Workflow Engine for Land Acquisition)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// This is the heart of the system! It connects a Parcel to a Project and moves it
+// through the 5 official legal stages:
+// PROPOSED -> NOTIFIED -> VALUATED -> COMPENSATED -> COMPLETED
 model Acquisition {
   id            Int           @id @default(autoincrement())
   parcelId      Int           @map("parcel_id")
   projectId     Int           @map("project_id")
+  
+  // Current stage in the workflow state machine
   status        String        @default("PROPOSED")
-  createdById   Int           @map("created_by")
+  createdById   Int           @map("created_by") // Officer who initiated this
   createdAt     DateTime      @default(now()) @map("created_at")
+  
+  // @updatedAt = Prisma automatically updates this timestamp whenever status changes!
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  // Relations
+  // --- RELATIONS ---
   parcel        Parcel        @relation(fields: [parcelId], references: [id], onDelete: Restrict)
   project       Project       @relation(fields: [projectId], references: [id], onDelete: Restrict)
   createdBy     User          @relation("UserAcquisitions", fields: [createdById], references: [id], onDelete: Restrict)
@@ -126,45 +204,53 @@ model Acquisition {
   objections    Objection[]
   statusHistory StatusHistory[]
 
+  // Constraint: Cannot acquire the same parcel twice for the same project!
   @@unique([parcelId, projectId], name: "uq_parcel_project")
   @@map("acquisitions")
 }
 
 // ----------------------------------------------------------------------------
-// Table 7: Compensation (Financial Disbursement Ledger per Landowner)
-// Payment Statuses: PENDING, PROCESSING, PAID, FAILED
+// TABLE 7: Compensation (Financial Disbursement Ledger per Landowner)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// When land is acquired, farmers must be paid!
+// FORMULA: amount = area_sqm * market_rate_per_sqm * (share_percent / 100)
+// Payment statuses: PENDING -> PROCESSING -> PAID (or FAILED)
 model Compensation {
   id             Int       @id @default(autoincrement())
   acquisitionId  Int       @map("acquisition_id")
   ownerId        Int       @map("owner_id")
-  amount         Float
+  amount         Float     // Payout amount in INR
   paymentStatus  String    @default("PENDING") @map("payment_status")
-  paymentDate    DateTime? @map("payment_date")
+  paymentDate    DateTime? @map("payment_date") // Recorded when payment succeeds
   createdAt      DateTime  @default(now()) @map("created_at")
 
-  // Relations
+  // --- RELATIONS ---
   acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
   owner          Owner       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  // One compensation voucher per owner per acquisition!
   @@unique([acquisitionId, ownerId], name: "uq_acquisition_owner")
   @@map("compensations")
 }
 
 // ----------------------------------------------------------------------------
-// Table 8: Objection (Citizen Grievance & Dispute Redressal)
-// Statuses: OPEN, UNDER_REVIEW, RESOLVED, REJECTED
+// TABLE 8: Objection (Citizen Grievance & Dispute Redressal)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS:
+// In a democracy, landowners have the legal right to challenge an acquisition
+// (e.g., compensation rate too low, survey border mismatch).
+// Statuses: OPEN -> UNDER_REVIEW -> RESOLVED (or REJECTED)
 model Objection {
   id             Int       @id @default(autoincrement())
   acquisitionId  Int       @map("acquisition_id")
   ownerId        Int       @map("owner_id")
-  reason         String
+  reason         String    // Why the citizen is objecting
   status         String    @default("OPEN")
   filedAt        DateTime  @default(now()) @map("filed_at")
   resolvedAt     DateTime? @map("resolved_at")
 
-  // Relations
+  // --- RELATIONS ---
   acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
   owner          Owner       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -172,17 +258,21 @@ model Objection {
 }
 
 // ----------------------------------------------------------------------------
-// Table 9: StatusHistory (Audit Trail of Workflow Stage Transitions)
+// TABLE 9: StatusHistory (Immutable Real-Time Audit Log)
 // ----------------------------------------------------------------------------
+// WHY THIS TABLE EXISTS (LECTURE TOPIC: Audit Trails & Real-Time Tracking):
+// Land acquisition involves crores of rupees. For transparency and anti-corruption,
+// we NEVER overwrite history. Every single status change is permanently appended
+// here with WHO changed it and WHEN!
 model StatusHistory {
   id             Int         @id @default(autoincrement())
   acquisitionId  Int         @map("acquisition_id")
-  oldStatus      String?     @map("old_status")
-  newStatus      String      @map("new_status")
-  changedById    Int         @map("changed_by")
+  oldStatus      String?     @map("old_status") // e.g. "PROPOSED"
+  newStatus      String      @map("new_status") // e.g. "NOTIFIED"
+  changedById    Int         @map("changed_by") // Officer ID
   changedAt      DateTime    @default(now()) @map("changed_at")
 
-  // Relations
+  // --- RELATIONS ---
   acquisition    Acquisition @relation(fields: [acquisitionId], references: [id], onDelete: Cascade)
   changedBy      User        @relation("UserStatusChanges", fields: [changedById], references: [id], onDelete: Restrict)
 

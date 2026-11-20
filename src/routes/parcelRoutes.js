@@ -1,3 +1,9 @@
+// ============================================================================
+// 🛣️ CADASTRAL PARCEL & OWNER ROUTES (BEGINNER-FRIENDLY EXPLAINER 🚀)
+// File: src/routes/parcelRoutes.js
+// Mounted under: /api/v1/parcels
+// ============================================================================
+
 const express = require('express');
 const {
   createParcel,
@@ -12,13 +18,12 @@ const { authorize } = require('../middlewares/roleMiddleware');
 
 const router = express.Router();
 
-/**
- * Cadastral Parcels & Landowner Registry Endpoints
- * Base Path: /api/v1/parcels
- */
+// Cadastral registry reads
 router.get('/', getParcels);
 router.get('/owners/list', getOwnersList);
 router.get('/:id', getParcelById);
+
+// Cadastral mutations (Admin and Revenue Officers only)
 router.post('/', authenticate, authorize('ADMIN', 'OFFICER'), createParcel);
 router.post('/owners/register', authenticate, authorize('ADMIN', 'OFFICER'), registerOwner);
 router.post('/:id/owners', authenticate, authorize('ADMIN', 'OFFICER'), assignOwnerShare);
