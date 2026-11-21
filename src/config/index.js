@@ -1,5 +1,3 @@
-// Loads application configuration.
-
 const path = require('path');
 
 // Load environment variables from the root .env file
