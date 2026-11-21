@@ -1,27 +1,15 @@
 // Starts the HTTP server and handles shutdown.
 
-const http = require('http');
 const app = require('./app');
 const config = require('./config');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-// Create the Node.js native HTTP server wrapping Express
-const server = http.createServer(app);
-
 const PORT = config.port;
 
-// Start the HTTP server.
-server.listen(PORT, async () => {
-  console.log(`=======================================================`);
-  console.log(`🚀 Land Acquisition Real-Time API Server Running!`);
-  console.log(`📍 URL:          http://localhost:${PORT}`);
-  console.log(`📡 Real-Time SSE: http://localhost:${PORT}/api/v1/realtime/stream`);
-  console.log(`🖥️ Web Dashboard: http://localhost:${PORT}`);
-  console.log(`🩺 Healthcheck:   http://localhost:${PORT}/api/v1/health`);
-  console.log(`🌱 Environment:   ${config.nodeEnv}`);
-  console.log(`=======================================================`);
+const server = app.listen(PORT, () => {
+  console.log(`Land Acquisition System running at http://localhost:${PORT}`);
 });
 
 // Close the server and database connection during shutdown.

@@ -1,7 +1,6 @@
 // Configures Express middleware and mounts API routes.
 
 const express = require('express');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
@@ -10,16 +9,7 @@ const routes = require('./routes');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
 const { notFoundHandler, errorHandler } = require('./middlewares/errorMiddleware');
 
-// Create the Express application instance
 const app = express();
-
-
-app.use(
-  cors({
-    origin: config.corsOrigin === '*' ? true : config.corsOrigin,
-    credentials: true // Allow authentication cookies to travel across origins
-  })
-);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

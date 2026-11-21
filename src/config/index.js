@@ -14,7 +14,5 @@ module.exports = {
 
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
 
-  cookieSecret: process.env.COOKIE_SECRET || 'land_acquisition_cookie_secret_key_2026',
-
-  corsOrigin: process.env.CORS_ORIGIN || '*'
+  cookieSecret: process.env.COOKIE_SECRET || 'land_acquisition_cookie_secret_key_2026'
 };
