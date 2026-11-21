@@ -1,28 +1,9 @@
-// ============================================================================
-// 🏞️ CADASTRAL PARCELS & OWNERSHIP CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
-// File: src/controllers/parcelController.js
-// ============================================================================
-// 💡 LECTURE TOPIC:
-// "Prisma Database Relations, Prisma CRUD, Many-to-Many Relationships"
-//
-// 💡 WHAT THIS CONTROLLER DOES:
-// 1. Registers land parcels with official revenue survey numbers and circle rates.
-// 2. Calculates total parcel valuation: `area_sqm * market_rate_per_sqm`.
-// 3. Manages co-ownership percentage shares (resolving the Many-to-Many relationship
-//    between Parcels and Landowners).
-// ============================================================================
+// Handles parcel and ownership registry operations.
 
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
-
-/**
- * 1. REGISTER A NEW LAND PARCEL
- * POST /api/v1/parcels
- * Access: ADMIN
- * Body: { surveyNumber, village, areaSqm, marketRatePerSqm, owners? }
- */
 const createParcel = async (req, res, next) => {
   try {
     const { surveyNumber, village, areaSqm, marketRatePerSqm, owners } = req.body;
@@ -100,12 +81,6 @@ const createParcel = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 2. GET ALL PARCELS WITH FILTERING
- * GET /api/v1/parcels
- * Query params: ?village=Nandyal&search=P-101&minArea=2000&maxRate=1500
- */
 const getParcels = async (req, res, next) => {
   try {
     const { village, search, minArea, maxRate } = req.query;
@@ -142,7 +117,6 @@ const getParcels = async (req, res, next) => {
       orderBy: { id: 'asc' }
     });
 
-    // 💡 MATHEMATICAL CALCULATION:
     // Compute total parcel market valuation: Area (sqm) * Circle Rate (₹/sqm)
     const enriched = parcels.map((p) => ({
       ...p,
@@ -154,39 +128,6 @@ const getParcels = async (req, res, next) => {
     next(error);
   }
 };
-
-/** GET /api/v1/parcels/mine — only parcels linked to the signed-in owner. */
-const getMyParcels = async (req, res, next) => {
-  try {
-    const ownerId = req.user.ownerProfile?.id;
-    if (!ownerId) return sendSuccess(res, 200, 'No owner profile is linked to this account', []);
-
-    const parcels = await prisma.parcel.findMany({
-      where: { parcelOwners: { some: { ownerId } } },
-      include: {
-        parcelOwners: {
-          include: { owner: { select: { id: true, fullName: true, phone: true, idNumber: true } } }
-        },
-        acquisitions: {
-          select: { id: true, status: true, project: { select: { id: true, name: true } } }
-        }
-      },
-      orderBy: { id: 'asc' }
-    });
-    const enriched = parcels.map(parcel => ({
-      ...parcel,
-      totalValuation: parcel.areaSqm * parcel.marketRatePerSqm
-    }));
-    return sendSuccess(res, 200, 'Your parcels retrieved successfully', enriched);
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * 3. GET PARCEL BY ID
- * GET /api/v1/parcels/:id
- */
 const getParcelById = async (req, res, next) => {
   try {
     const parcelId = Number(req.params.id);
@@ -222,16 +163,6 @@ const getParcelById = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 4. ASSIGN OR UPDATE CO-OWNERSHIP SHARE (MANY-TO-MANY JUNCTION)
- * POST /api/v1/parcels/:id/owners
- * Access: ADMIN
- * Body: { ownerId, sharePercent }
- * 
- * 💡 BUSINESS VALIDATION:
- * The sum of shares across all co-owners of a parcel must NEVER exceed 100%!
- */
 const assignOwnerShare = async (req, res, next) => {
   try {
     const parcelId = Number(req.params.id);
@@ -272,7 +203,6 @@ const assignOwnerShare = async (req, res, next) => {
       );
     }
 
-    // 💡 PRISMA UPSERT:
     // If the owner is already assigned to this parcel, UPDATE their share.
     // If not, CREATE a new row in the junction table!
     const assignment = await prisma.parcelOwner.upsert({
@@ -296,11 +226,6 @@ const assignOwnerShare = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 5. REGISTER A NEW CITIZEN LANDOWNER
- * POST /api/v1/parcels/owners/register
- */
 const registerOwner = async (req, res, next) => {
   try {
     const { fullName, phone, idNumber } = req.body;
@@ -318,11 +243,6 @@ const registerOwner = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 6. GET ALL REGISTERED CITIZEN LANDOWNERS
- * GET /api/v1/parcels/owners/list
- */
 const getOwnersList = async (req, res, next) => {
   try {
     const owners = await prisma.owner.findMany({

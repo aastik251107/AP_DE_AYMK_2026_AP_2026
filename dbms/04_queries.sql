@@ -1,37 +1,13 @@
--- ============================================================================
--- File:        dbms/04_queries.sql
--- Project:     Real-Time Land Acquisition & Management System
--- Database:    PostgreSQL (12.0+)
--- Course:      Database Management Systems (B.Tech 2nd Year)
--- Level:       Basic Beginner / Newbie Friendly 🚀
--- Author:      Data Engineering Team (AYMK)
--- Repo:        https://github.com/aastik251107/AP_DE_AYMK_2026_AP_2026
---
--- WORKLOAD SPECIFICATION:
---   R01–R25 : Read queries  (25) - Lookups, JOINs, aggregations, workflows
---   W01–W05 : Write queries (5)  - Acquisitions, calculations, transitions, payouts
---   Total   : 30 benchmark queries matching the standard course workload
---
--- RULES & EXECUTION:
---   * Every query runs directly against the PostgreSQL schema in 03_schema.sql.
---   * Explicit JOINs are used wherever multiple tables are connected.
---   * Safe to run in psql/pgAdmin: the entire file is wrapped in BEGIN ... ROLLBACK.
---   * The "-- @R01" and "-- @W01" markers are fully compatible with run_benchmark.sh.
--- ============================================================================
+-- Demonstrates read and write queries for project data.
 
 -- Ensure standard search path to public schema
 SET search_path TO public;
 
 BEGIN;
 
--- ============================================================================
--- 📖 SECTION 1: READ QUERIES (R01 – R25)
--- ============================================================================
 
 -- @R01
 -- READ: User authentication and login lookup
--- Screen: Login Gateway
--- Finds user details by email address (case-insensitive) to verify credentials.
 SELECT 
     user_id, 
     name, 
@@ -43,8 +19,6 @@ WHERE LOWER(email) = LOWER('admin@ap.gov.in');
 
 -- @R02
 -- READ: Citizen landowner verification by National ID
--- Screen: Citizen Verification Desk
--- Searches the registry for a landowner using their unique Aadhaar/PAN ID number.
 SELECT 
     owner_id, 
     full_name, 
@@ -56,8 +30,6 @@ WHERE id_number = 'ID-901';
 
 -- @R03
 -- READ: Land parcel cadastral details and total valuation
--- Screen: Cadastral Registry Search
--- Looks up a parcel by survey number and computes total market value (area * circle rate).
 SELECT 
     parcel_id, 
     survey_number, 
@@ -70,8 +42,6 @@ WHERE survey_number = 'P-101';
 
 -- @R04
 -- READ: Parcel co-ownership breakdown with legal shares
--- Screen: Title Deed & Ownership Verification
--- Connects parcels, parcel_owners, and owners to show all co-owners and pro-rata land area.
 SELECT 
     p.survey_number,
     p.village,
@@ -88,8 +58,6 @@ ORDER BY po.share_percent DESC;
 
 -- @R05
 -- READ: Citizen land portfolio ("My Land Holdings")
--- Screen: Citizen Self-Service Portal
--- Lists every parcel in which a specific citizen holds ownership, with pro-rata valuation.
 SELECT 
     o.owner_id,
     o.full_name AS landowner_name,
@@ -107,8 +75,6 @@ ORDER BY p.survey_number ASC;
 
 -- @R06
 -- READ: Approved infrastructure schemes directory
--- Screen: Government Projects Overview
--- Retrieves all public infrastructure projects ordered by sanctioned budget.
 SELECT 
     project_id, 
     name AS project_name, 
@@ -120,8 +86,6 @@ ORDER BY budget DESC;
 
 -- @R07
 -- READ: Active land acquisition pipeline overview
--- Screen: Admin Operations Dashboard
--- Joins acquisitions, projects, parcels, and users to display full status of all cases.
 SELECT 
     a.acquisition_id,
     pr.name AS project_name,
@@ -141,8 +105,6 @@ ORDER BY a.updated_at DESC;
 
 -- @R08
 -- READ: Work queue filtered by acquisition stage
--- Screen: Department Stage Processing Queue
--- Filters ongoing acquisitions at a specific lifecycle stage (e.g. 'VALUATED').
 SELECT 
     a.acquisition_id,
     pr.name AS project_name,
@@ -159,8 +121,6 @@ ORDER BY a.created_at ASC;
 
 -- @R09
 -- READ: Single acquisition case dossier
--- Screen: Acquisition Case File Detail View
--- Fetches complete details of a single case including parcel, project, and admin info.
 SELECT 
     a.acquisition_id,
     a.status AS current_stage,
@@ -185,8 +145,6 @@ WHERE a.acquisition_id = 501;
 
 -- @R10
 -- READ: Financial compensation ledger per co-owner
--- Screen: Compensation Disbursement Ledger
--- Displays calculated compensation money, share %, and payment status for each owner.
 SELECT 
     c.compensation_id,
     a.acquisition_id,
@@ -205,8 +163,6 @@ ORDER BY po.share_percent DESC;
 
 -- @R11
 -- READ: Landowner compensation status inquiry
--- Screen: Citizen Compensation Tracker
--- Shows all compensation vouchers awarded to a specific citizen across projects.
 SELECT 
     c.compensation_id,
     pr.name AS project_name,
@@ -224,8 +180,6 @@ ORDER BY c.created_at DESC;
 
 -- @R12
 -- READ: Open landowner grievances and objections queue
--- Screen: Grievance Redressal Desk
--- Lists unresolved disputes filed by landowners awaiting administrative action.
 SELECT 
     ob.objection_id,
     a.acquisition_id,
@@ -246,8 +200,6 @@ ORDER BY ob.filed_at ASC;
 
 -- @R13
 -- READ: Completion governance and integrity gatekeeper
--- Screen: Pre-Completion Verification Checkpoint
--- Verifies zero open objections and zero unpaid compensation vouchers before closure.
 SELECT 
     a.acquisition_id,
     a.status AS current_status,
@@ -258,8 +210,6 @@ WHERE a.acquisition_id = 501;
 
 -- @R14
 -- READ: Immutable audit trail of lifecycle stage transitions
--- Screen: Legal Compliance & RTI Audit History
--- Chronological log of every status transition for a case file with authorized admin.
 SELECT 
     sh.history_id,
     sh.acquisition_id,
@@ -274,8 +224,6 @@ ORDER BY sh.history_id ASC;
 
 -- @R15
 -- READ: Project financial summary (Sanctioned budget vs Awarded compensation)
--- Screen: Ministry Financial Monitoring Dashboard
--- Aggregates total compensation awarded per project against sanctioned public budget.
 SELECT 
     pr.project_id,
     pr.name AS project_name,
@@ -292,8 +240,6 @@ ORDER BY pr.budget DESC;
 
 -- @R16
 -- READ: Village-level land acquisition impact analysis
--- Screen: Regional Planning & Survey Report
--- Aggregates acquired land area, parcel counts, and average circle rates per village.
 SELECT 
     pa.village,
     COUNT(DISTINCT pa.parcel_id) AS total_parcels,
@@ -307,8 +253,6 @@ ORDER BY total_area_sqm DESC;
 
 -- @R17
 -- READ: Compensation disbursement summary by payment status
--- Screen: Treasury Liquidity Report
--- Summarizes compensation voucher counts and monetary totals by payment status.
 SELECT 
     payment_status,
     COUNT(*) AS voucher_count,
@@ -320,8 +264,6 @@ ORDER BY total_amount DESC;
 
 -- @R18
 -- READ: Disputed acquisitions blocked by open objections
--- Screen: Legal Review & Escalation Dashboard
--- Identifies all acquisitions currently contested by at least one unresolved grievance.
 SELECT 
     a.acquisition_id,
     pr.name AS project_name,
@@ -339,8 +281,6 @@ HAVING COUNT(CASE WHEN ob.status = 'OPEN' THEN 1 END) > 0;
 
 -- @R19
 -- READ: Cadastral land bank (Parcels not yet acquired)
--- Screen: Land Bank Corridor Planning
--- Lists registered land parcels that have not been earmarked for any government project.
 SELECT 
     p.parcel_id,
     p.survey_number,
@@ -354,8 +294,6 @@ ORDER BY p.village, p.survey_number;
 
 -- @R20
 -- READ: Top beneficiary landowners by total compensation
--- Screen: High-Value Financial Compliance Audit
--- Ranks landowners receiving highest cumulative compensation awards across all schemes.
 SELECT 
     o.owner_id,
     o.full_name AS landowner_name,
@@ -371,8 +309,6 @@ LIMIT 5;
 
 -- @R21
 -- READ: Acquisition casework handled by administrators
--- Screen: Administrative Workload Balancing
--- Counts total active acquisition cases managed by each administrator.
 SELECT 
     u.user_id,
     u.name AS admin_name,
@@ -386,8 +322,6 @@ ORDER BY total_cases_handled DESC;
 
 -- @R22
 -- READ: Land title integrity check (Share percentage audit)
--- Screen: Database Integrity Verification
--- Flags any land parcel where the sum of ownership shares does not equal exactly 100%.
 SELECT 
     p.parcel_id,
     p.survey_number,
@@ -401,8 +335,6 @@ HAVING SUM(po.share_percent) != 100.00;
 
 -- @R23
 -- READ: High-value land parcel acquisitions
--- Screen: Special Asset Oversight
--- Filters acquisitions whose total land market valuation exceeds ₹40,00,000 (₹40 Lakhs).
 SELECT 
     a.acquisition_id,
     pr.name AS project_name,
@@ -419,8 +351,6 @@ ORDER BY parcel_valuation DESC;
 
 -- @R24
 -- READ: Acquisition pipeline SLA tracking and delay detection
--- Screen: Departmental SLA Monitoring
--- Lists uncompleted acquisitions sorted by oldest update time to detect stalled files.
 SELECT 
     a.acquisition_id,
     pr.name AS project_name,
@@ -437,8 +367,6 @@ ORDER BY a.updated_at ASC;
 
 -- @R25
 -- READ: Grievance redressal resolution rate per project
--- Screen: Public Accountability & Citizen Redressal Report
--- Calculates percentage of filed objections resolved or rejected per infrastructure project.
 SELECT 
     pr.project_id,
     pr.name AS project_name,
@@ -456,21 +384,14 @@ JOIN objections ob   ON a.acquisition_id = ob.acquisition_id
 GROUP BY pr.project_id, pr.name
 ORDER BY total_objections DESC;
 
--- ============================================================================
--- ✍️ SECTION 2: WRITE QUERIES (W01 – W05)
--- ============================================================================
 
 -- @W01
 -- WRITE: Initiate a new land parcel acquisition case
--- Screen: Acquisition Initiation Form
--- Earmarks parcel P-102 (parcel_id=2) for Highway NH-167 (project_id=100) with status 'PROPOSED'.
 INSERT INTO acquisitions (parcel_id, project_id, status, created_by)
 VALUES (2, 100, 'PROPOSED', 1);
 
 -- @W02
 -- WRITE: Automated compensation computation and voucher generation
--- Screen: Valuation Engine
--- Computes pro-rata compensation (area * circle_rate * share%) for all co-owners of an acquisition.
 INSERT INTO compensations (acquisition_id, owner_id, amount, payment_status)
 SELECT 
     a.acquisition_id,
@@ -486,23 +407,17 @@ DO UPDATE SET amount = EXCLUDED.amount;
 
 -- @W03
 -- WRITE: Advance acquisition lifecycle stage
--- Screen: Admin Workflow State Transition
--- Advances acquisition status from VALUATED to COMPENSATED (trigger updates updated_at).
 UPDATE acquisitions
 SET status = 'COMPENSATED'
 WHERE acquisition_id = 501;
 
 -- @W04
 -- WRITE: Landowner files formal grievance / objection
--- Screen: Citizen Dispute Submission Form
--- Submits a formal dispute challenging the boundary demarcation and valuation rate.
 INSERT INTO objections (acquisition_id, owner_id, reason, status)
 VALUES (501, 11, 'Demarcation survey encroaches on agricultural borewell infrastructure', 'OPEN');
 
 -- @W05
 -- WRITE: Disburse compensation payout to landowner
--- Screen: Treasury Payment Gateway
--- Updates compensation voucher to 'PAID' and records current timestamp.
 UPDATE compensations
 SET payment_status = 'PAID',
     payment_date = CURRENT_TIMESTAMP
@@ -511,4 +426,3 @@ WHERE acquisition_id = 501
 
 -- @END
 ROLLBACK;
--- Script safely rolled back; no test rows permanently committed to the database.

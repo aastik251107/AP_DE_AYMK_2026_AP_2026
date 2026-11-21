@@ -1,30 +1,10 @@
-// ============================================================================
-// ⚖️ CITIZEN GRIEVANCES & OBJECTIONS CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
-// File: src/controllers/objectionController.js
-// ============================================================================
-// 💡 LECTURE TOPIC:
-// "REST APIs, Role Based Authorisation, EventEmitter, Observer Pattern"
-//
-// 💡 WHAT THIS CONTROLLER DOES:
-// 1. Allows citizen landowners to formally file legal disputes/objections
-//    (e.g., "Market circle rate was updated, compensation is too low").
-// 2. Verifies that the citizen actually owns an ownership share in that parcel
-//    before allowing them to file.
-// 3. Allows Administrators to review, settle, or reject grievances.
-// ============================================================================
+// Handles landowner query submissions and reviews.
 
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const eventBus = require('../services/eventBus');
 
 const prisma = new PrismaClient();
-
-/**
- * 1. FILE A CITIZEN GRIEVANCE / OBJECTION
- * POST /api/v1/objections
- * Access: OWNER, ADMIN
- * Body: { acquisitionId, reason, ownerId? }
- */
 const fileObjection = async (req, res, next) => {
   try {
     const { acquisitionId, reason, ownerId } = req.body;
@@ -66,7 +46,6 @@ const fileObjection = async (req, res, next) => {
       return sendError(res, 404, `Acquisition #${acqId} not found.`);
     }
 
-    // 💡 ANTI-FRAUD VALIDATION:
     // Verify that the citizen actually holds an ownership share in this specific parcel!
     const isOwnerOfParcel = acquisition.parcel.parcelOwners.some(
       (po) => po.ownerId === targetOwnerId
@@ -111,12 +90,6 @@ const fileObjection = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 2. GET OBJECTIONS WITH FILTERING
- * GET /api/v1/objections
- * Query params: ?status=OPEN&acquisitionId=1
- */
 const getObjections = async (req, res, next) => {
   try {
     const { status, acquisitionId } = req.query;
@@ -150,13 +123,6 @@ const getObjections = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 3. REVIEW OR RESOLVE OBJECTION
- * PATCH /api/v1/objections/:id/status
- * Access: ADMIN
- * Body: { status: "UNDER_REVIEW" | "RESOLVED" | "REJECTED", resolutionNotes? }
- */
 const updateObjectionStatus = async (req, res, next) => {
   try {
     const objectionId = Number(req.params.id);

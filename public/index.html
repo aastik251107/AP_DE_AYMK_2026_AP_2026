@@ -658,7 +658,6 @@
         try {
           const payload = JSON.parse(e.data);
           addEventLog(payload);
-          // Auto refresh data tables when real-time event occurs
           fetchAcquisitions();
           fetchCompensations();
           fetchObjections();
@@ -1006,7 +1005,7 @@
     }
 
     async function disbursePayment(compId) {
-      // Generate a client-side UUID for Idempotency Demonstration
+      // Create a unique key for this payment request.
       const idempotencyKey = 'pay_tx_' + compId + '_' + Date.now();
       try {
         const res = await fetch(`/api/v1/compensations/${compId}/pay`, {
@@ -1091,7 +1090,6 @@
       fetchOwners();
     }
 
-    // Auto bootstrap on page load
     document.addEventListener('DOMContentLoaded', () => {
       bindForms();
       switchRole('admin@ap.gov.in');

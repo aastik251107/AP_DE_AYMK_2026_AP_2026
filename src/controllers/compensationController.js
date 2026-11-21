@@ -1,32 +1,10 @@
-// ============================================================================
-// 💰 LANDOWNER COMPENSATION & DISBURSEMENTS CONTROLLER (BEGINNER-FRIENDLY 🚀)
-// File: src/controllers/compensationController.js
-// ============================================================================
-// 💡 LECTURE TOPIC:
-// "Idempotency, Express JS Request/Response, Prisma CRUD, Event-Driven Architecture"
-//
-// 💡 WHAT THIS CONTROLLER DOES:
-// 1. Lists financial compensation payouts per citizen landowner.
-// 2. Disburses government compensation payments.
-// 3. Integrates with our Idempotency Middleware to guarantee that no farmer or
-//    land parcel receives duplicate bank payouts even if an admin double-clicks!
-// ============================================================================
+// Handles compensation queries and payments.
 
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const eventBus = require('../services/eventBus');
 
 const prisma = new PrismaClient();
-
-/**
- * 1. GET COMPENSATIONS WITH FILTERING
- * GET /api/v1/compensations
- * Query params: ?status=PENDING&acquisitionId=1
- * 
- * 💡 RBAC ENFORCEMENT:
- * If the user logged in is a citizen Landowner (`req.user.role === 'OWNER'`),
- * we automatically restrict the query to return ONLY their own compensation records!
- */
 const getCompensations = async (req, res, next) => {
   try {
     const { status, ownerId, acquisitionId } = req.query;
@@ -66,13 +44,6 @@ const getCompensations = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 2. DISBURSE / PAY COMPENSATION (IDEMPOTENT ENDPOINT)
- * POST /api/v1/compensations/:id/pay
- * Access: ADMIN
- * Headers: Idempotency-Key: <unique-uuid> (optional but highly recommended!)
- */
 const disbursePayment = async (req, res, next) => {
   try {
     const compensationId = Number(req.params.id);
@@ -122,7 +93,6 @@ const disbursePayment = async (req, res, next) => {
       }
     });
 
-    // 💡 AUTOMATED STATE TRANSITION:
     // If all co-owners are paid, auto-advance acquisition status to 'COMPENSATED'!
     if (remainingUnpaid === 0 && comp.acquisition.status === 'VALUATED') {
       await prisma.acquisition.update({

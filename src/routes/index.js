@@ -1,3 +1,5 @@
+// Mounts the versioned API routes.
+
 const express = require('express');
 const authRoutes = require('./authRoutes');
 const userRoutes = require('./userRoutes');
@@ -9,11 +11,6 @@ const objectionRoutes = require('./objectionRoutes');
 const realtimeRoutes = require('./realtimeRoutes');
 
 const router = express.Router();
-
-/**
- * API Versioning: /api/v1
- * Resource Based URLs
- */
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/projects', projectRoutes);
@@ -23,7 +20,6 @@ router.use('/compensations', compensationRoutes);
 router.use('/objections', objectionRoutes);
 router.use('/realtime', realtimeRoutes);
 
-// Health check endpoint
 router.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',

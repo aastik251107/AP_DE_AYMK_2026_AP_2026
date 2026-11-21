@@ -1,7 +1,4 @@
-/**
- * Automated Smoke Test & Verification Suite
- * Tests REST APIs, JWT Auth, RBAC, Idempotency, and Workflow Engine
- */
+// Exercises authentication, role access, and API workflows.
 
 const http = require('http');
 const app = require('../src/app');
@@ -76,11 +73,9 @@ async function runTests() {
   }
 
   try {
-    // 1. Health check
     const health = await request('GET', '/api/v1/health');
     assert(health.statusCode === 200 && health.body.status === 'healthy', 'GET /api/v1/health returns 200 Healthy');
 
-    // 2. Login as Admin Sharma
     const adminLogin = await request('POST', '/api/v1/auth/login', {
       email: 'admin@ap.gov.in',
       password: 'password123'
@@ -88,7 +83,6 @@ async function runTests() {
     assert(adminLogin.statusCode === 200 && adminLogin.body.data.token, 'POST /api/v1/auth/login (Admin)');
     adminToken = adminLogin.body.data.token;
 
-    // 3. Login as Landowner Suresh
     const ownerLogin = await request('POST', '/api/v1/auth/login', {
       email: 'suresh@gmail.com',
       password: 'password123'
@@ -96,7 +90,6 @@ async function runTests() {
     assert(ownerLogin.statusCode === 200 && ownerLogin.body.data.token, 'POST /api/v1/auth/login (Landowner)');
     landownerToken = ownerLogin.body.data.token;
 
-    // 4. Test RBAC: Landowner trying to create a project should be rejected (403 Forbidden)
     const unauthorizedProject = await request(
       'POST',
       '/api/v1/projects',
@@ -105,7 +98,6 @@ async function runTests() {
     );
     assert(unauthorizedProject.statusCode === 403, 'RBAC: Landowner rejected from creating project (403 Forbidden)');
 
-    // 5. Test RBAC: Admin creates a new project
     const newProject = await request(
       'POST',
       '/api/v1/projects',
@@ -115,7 +107,6 @@ async function runTests() {
     assert(newProject.statusCode === 201 && newProject.body.data.id, 'RBAC: Admin creates Project (201 Created)');
     const createdProjectId = newProject.body.data.id;
 
-    // 6. Admin registers a new parcel
     const newParcel = await request(
       'POST',
       '/api/v1/parcels',
@@ -131,7 +122,6 @@ async function runTests() {
     assert(newParcel.statusCode === 201 && newParcel.body.data.id, 'POST /api/v1/parcels (Admin registers parcel)');
     const createdParcelId = newParcel.body.data.id;
 
-    // 7. Admin initiates acquisition workflow
     const newAcquisition = await request(
       'POST',
       '/api/v1/acquisitions',
@@ -147,7 +137,6 @@ async function runTests() {
     );
     const createdAcqId = newAcquisition.body.data.id;
 
-    // 8. Advance acquisition status to NOTIFIED
     const advanceNotified = await request(
       'PATCH',
       `/api/v1/acquisitions/${createdAcqId}/status`,
@@ -159,7 +148,6 @@ async function runTests() {
       'PATCH /api/v1/acquisitions/:id/status (Transition to NOTIFIED)'
     );
 
-    // 9. Advance acquisition status to VALUATED (triggers auto compensation calculation!)
     const advanceValuated = await request(
       'PATCH',
       `/api/v1/acquisitions/${createdAcqId}/status`,
@@ -171,7 +159,6 @@ async function runTests() {
       'PATCH /api/v1/acquisitions/:id/status (Transition to VALUATED & auto-compensation generation)'
     );
 
-    // 10. Retrieve compensations for this acquisition
     const compList = await request('GET', `/api/v1/compensations?acquisitionId=${createdAcqId}`, null, {
       Authorization: `Bearer ${adminToken}`
     });
@@ -181,7 +168,6 @@ async function runTests() {
     );
     const compRecord = compList.body.data[0];
 
-    // 11. Test Idempotency on Compensation Payment
     const idempotencyKey = 'test_key_xyz_12345';
     const firstPayment = await request(
       'POST',
@@ -197,7 +183,6 @@ async function runTests() {
       'Idempotency First Request: Processed successfully (X-Cache-Lookup: MISS)'
     );
 
-    // 12. Re-send same request with same Idempotency-Key
     const secondPayment = await request(
       'POST',
       `/api/v1/compensations/${compRecord.id}/pay`,
@@ -212,7 +197,6 @@ async function runTests() {
       'Idempotency Second Request: Replayed from cache (X-Cache-Lookup: HIT)'
     );
 
-    // 13. File Objection by Landowner
     const objection = await request(
       'POST',
       '/api/v1/objections',

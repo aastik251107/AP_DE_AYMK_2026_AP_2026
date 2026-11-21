@@ -1,27 +1,9 @@
-// ============================================================================
-// 🏗️ INFRASTRUCTURE PROJECTS CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
-// File: src/controllers/projectController.js
-// ============================================================================
-// 💡 LECTURE TOPIC:
-// "REST API(s), Resource Based URL(s), Prisma CRUD, Prisma Relation Filtering"
-//
-// 💡 WHAT THIS CONTROLLER DOES:
-// Manages public infrastructure schemes (Highway NH-167, Metro, Canals) that
-// require land acquisition. Tracks total allocated public budget and calculates
-// how much money has been committed to compensation vouchers.
-// ============================================================================
+// Handles infrastructure project operations.
 
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
-
-/**
- * 1. CREATE A NEW INFRASTRUCTURE PROJECT
- * POST /api/v1/projects
- * Access: ADMIN
- * Body: { name, department, budget }
- */
 const createProject = async (req, res, next) => {
   try {
     const { name, department, budget } = req.body;
@@ -54,16 +36,6 @@ const createProject = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 2. GET ALL PROJECTS WITH OPTIONAL FILTERING
- * GET /api/v1/projects
- * Query params: ?department=NHAI&search=Highway
- * 
- * 💡 LECTURE TOPIC: Prisma Relation Filtering & Counts
- * `_count: { select: { acquisitions: true } }` counts how many land parcels
- * are currently linked to this project without having to load all records!
- */
 const getProjects = async (req, res, next) => {
   try {
     const { department, search } = req.query;
@@ -91,16 +63,6 @@ const getProjects = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 3. GET PROJECT BY ID (WITH FULL BUDGET AUDIT)
- * GET /api/v1/projects/:id
- * 
- * 💡 BUSINESS LOGIC:
- * Calculates total compensation committed across all acquisitions, and computes
- * the remaining available project budget:
- * `remainingBudget = project.budget - totalCompensationCommitted`
- */
 const getProjectById = async (req, res, next) => {
   try {
     const projectId = Number(req.params.id);
@@ -141,12 +103,6 @@ const getProjectById = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 4. UPDATE PROJECT
- * PUT /api/v1/projects/:id
- * Access: ADMIN
- */
 const updateProject = async (req, res, next) => {
   try {
     const projectId = Number(req.params.id);
@@ -173,15 +129,6 @@ const updateProject = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 5. DELETE PROJECT (SAFE DELETION)
- * DELETE /api/v1/projects/:id
- * Access: ADMIN
- * 
- * 💡 REFERENTIAL INTEGRITY CHECK:
- * We prevent accidental deletion if land parcels are already actively being acquired!
- */
 const deleteProject = async (req, res, next) => {
   try {
     const projectId = Number(req.params.id);

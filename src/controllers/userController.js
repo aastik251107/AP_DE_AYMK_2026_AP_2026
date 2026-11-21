@@ -1,28 +1,9 @@
-// ============================================================================
-// 👥 USER MANAGEMENT CONTROLLER (BEGINNER-FRIENDLY EXPLAINER 🚀)
-// File: src/controllers/userController.js
-// ============================================================================
-// 💡 LECTURE TOPIC:
-// "Authorisation, Role Based Authorisation, Prisma CRUD Operations"
-//
-// 💡 WHAT THIS CONTROLLER DOES:
-// Allows System Administrators to view users and assign ADMIN or OWNER roles.
-// ============================================================================
+// Handles user profile and role operations.
 
 const { PrismaClient } = require('@prisma/client');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 const prisma = new PrismaClient();
-
-/**
- * 1. GET ALL USERS (ADMIN ONLY)
- * GET /api/v1/users
- * 
- * 💡 PRISMA 'SELECT' PROJECTION:
- * Notice we use `select: { id: true, name: true, password: false }`.
- * We deliberately EXCLUDE the password hash from the SQL query so sensitive
- * data is never exposed in the response!
- */
 const getAllUsers = async (req, res, next) => {
   try {
     const users = await prisma.user.findMany({
@@ -42,11 +23,6 @@ const getAllUsers = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 2. GET USER PROFILE BY ID
- * GET /api/v1/users/:id
- */
 const getUserById = async (req, res, next) => {
   try {
     const userId = Number(req.params.id);
@@ -75,12 +51,6 @@ const getUserById = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * 3. UPDATE USER ROLE (ADMIN ONLY)
- * PATCH /api/v1/users/:id/role
- * Body: { role: "ADMIN" | "OWNER" }
- */
 const updateUserRole = async (req, res, next) => {
   try {
     const userId = Number(req.params.id);
