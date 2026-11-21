@@ -128,6 +128,43 @@ const getParcels = async (req, res, next) => {
     next(error);
   }
 };
+
+// Returns parcels linked to the signed-in landowner.
+const getMyParcels = async (req, res, next) => {
+  try {
+    const ownerId = req.user.ownerProfile?.id;
+    if (!ownerId) {
+      return sendSuccess(res, 200, 'No owner profile is linked to this account', []);
+    }
+
+    const parcels = await prisma.parcel.findMany({
+      where: { parcelOwners: { some: { ownerId } } },
+      include: {
+        parcelOwners: {
+          include: {
+            owner: {
+              select: { id: true, fullName: true, phone: true, idNumber: true }
+            }
+          }
+        },
+        acquisitions: {
+          select: { id: true, status: true, project: { select: { id: true, name: true } } }
+        }
+      },
+      orderBy: { id: 'asc' }
+    });
+
+    const enriched = parcels.map(parcel => ({
+      ...parcel,
+      totalValuation: parcel.areaSqm * parcel.marketRatePerSqm
+    }));
+
+    return sendSuccess(res, 200, 'Your parcels retrieved successfully', enriched);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getParcelById = async (req, res, next) => {
   try {
     const parcelId = Number(req.params.id);
