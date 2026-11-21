@@ -42,7 +42,7 @@ datasource db {
 // TABLE 1: User (System Logins & Roles)
 // ----------------------------------------------------------------------------
 // WHY THIS TABLE EXISTS:
-// We need to know WHO is logging into the system. Are they an Admin, a Land Officer,
+// We need to know WHO is logging into the system. Are they an Admin,
 // or a Citizen Landowner?
 //
 // LECTURE TOPIC: Authentication & Role-Based Access Control (RBAC)
@@ -50,7 +50,7 @@ model User {
   // @id = Primary Key. @default(autoincrement()) = Database gives each new user 1, 2, 3...
   id            Int             @id @default(autoincrement())
   
-  // User's display name (e.g., "Officer Ravi")
+  // User's display name (e.g., "Admin Sharma")
   name          String
   
   // @unique = Database enforces that no two people can register with the same email!
@@ -59,14 +59,14 @@ model User {
   // Hashed password using bcrypt (we NEVER store plain-text passwords!)
   password      String
   
-  // Role: ADMIN, OFFICER, or OWNER (Default role is OFFICER)
-  role          String          @default("OFFICER")
+  // Roles in this application: ADMIN and OWNER. New accounts are landowners.
+  role          String          @default("OWNER")
   
   // @default(now()) = Database automatically writes the current date and time
   createdAt     DateTime        @default(now())
   
   // --- RELATIONS (CONNECTIONS TO OTHER TABLES) ---
-  // One-to-Many: One officer can initiate multiple land acquisitions
+  // One-to-Many: An admin can initiate multiple land acquisitions
   acquisitions  Acquisition[]   @relation("UserAcquisitions")
   
   // One-to-Many: One user can make multiple status transitions in the audit log
@@ -190,7 +190,7 @@ model Acquisition {
   
   // Current stage in the workflow state machine
   status        String        @default("PROPOSED")
-  createdById   Int           @map("created_by") // Officer who initiated this
+  createdById   Int           @map("created_by") // Admin who initiated this
   createdAt     DateTime      @default(now()) @map("created_at")
   
   // @updatedAt = Prisma automatically updates this timestamp whenever status changes!
@@ -269,7 +269,7 @@ model StatusHistory {
   acquisitionId  Int         @map("acquisition_id")
   oldStatus      String?     @map("old_status") // e.g. "PROPOSED"
   newStatus      String      @map("new_status") // e.g. "NOTIFIED"
-  changedById    Int         @map("changed_by") // Officer ID
+  changedById    Int         @map("changed_by") // Admin ID
   changedAt      DateTime    @default(now()) @map("changed_at")
 
   // --- RELATIONS ---

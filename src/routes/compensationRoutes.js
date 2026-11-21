@@ -12,6 +12,6 @@ const router = express.Router();
  */
 router.get('/', authenticate, getCompensations);
 // Idempotency middleware protects the financial payment disbursement endpoint!
-router.post('/:id/pay', authenticate, authorize('ADMIN', 'OFFICER'), idempotency, disbursePayment);
+router.post('/:id/pay', authenticate, authorize('ADMIN'), idempotency, disbursePayment);
 
 module.exports = router;

@@ -19,7 +19,7 @@
 // 1. Header: The algorithm used (e.g. HS256).
 // 2. Payload: Safe public data we store inside (e.g. user id, email, role).
 // 3. Signature: Cryptographic seal made using our secret key (`JWT_SECRET`).
-//    If a user tries to edit their role from "OFFICER" to "ADMIN" inside the token,
+//    If a user tries to edit their role inside the token,
 //    the signature breaks and the server immediately rejects it!
 //
 // 💡 TOKEN VS COOKIE (WHY WE SUPPORT BOTH!):
@@ -33,7 +33,7 @@ const config = require('../config');
 
 /**
  * Sign (generate) a new JWT token containing user identity and role
- * @param {object} payload - { id: 1, name: "Officer Ravi", role: "OFFICER" }
+ * @param {object} payload - { id: 1, name: "Admin Sharma", role: "ADMIN" }
  */
 const signToken = (payload) => {
   return jwt.sign(payload, config.jwtSecret, {

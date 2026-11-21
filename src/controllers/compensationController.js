@@ -9,7 +9,7 @@
 // 1. Lists financial compensation payouts per citizen landowner.
 // 2. Disburses government compensation payments.
 // 3. Integrates with our Idempotency Middleware to guarantee that no farmer or
-//    land parcel receives duplicate bank payouts even if an officer double-clicks!
+//    land parcel receives duplicate bank payouts even if an admin double-clicks!
 // ============================================================================
 
 const { PrismaClient } = require('@prisma/client');
@@ -70,7 +70,7 @@ const getCompensations = async (req, res, next) => {
 /**
  * 2. DISBURSE / PAY COMPENSATION (IDEMPOTENT ENDPOINT)
  * POST /api/v1/compensations/:id/pay
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Headers: Idempotency-Key: <unique-uuid> (optional but highly recommended!)
  */
 const disbursePayment = async (req, res, next) => {

@@ -64,7 +64,7 @@ erDiagram
         int user_id PK "Primary Key"
         string name "User Full Name"
         string email UK "Login Email (Unique)"
-        string role "ADMIN or OFFICER or OWNER"
+        string role "ADMIN or OWNER"
         timestamp created_at "Account Creation Time"
     }
 
@@ -105,7 +105,7 @@ erDiagram
         int parcel_id FK "FK to PARCELS"
         int project_id FK "FK to PROJECTS"
         string status "PROPOSED | NOTIFIED | VALUATED | COMPENSATED | COMPLETED"
-        int created_by FK "FK to USERS (Officer)"
+        int created_by FK "FK to USERS (Admin)"
         timestamp created_at "Initiation Date"
         timestamp updated_at "Last State Change"
     }
@@ -135,7 +135,7 @@ erDiagram
         int acquisition_id FK "FK to ACQUISITIONS"
         string old_status "Previous Lifecycle Stage"
         string new_status "Updated Lifecycle Stage"
-        int changed_by FK "FK to USERS (Officer)"
+        int changed_by FK "FK to USERS (Admin)"
         timestamp changed_at "Timestamp of Action"
     }
 ```
@@ -149,7 +149,7 @@ To make this crystal clear for any beginner, the 9 tables are grouped into **4 n
 ```
  ┌────────────────────────────────────────────────────────────────────────┐
  │                     1. IDENTITY & AUTHENTICATION                       │
- │  [ users ] : System Officers & Administrators logging in.              │
+ │  [ users ] : Administrators & Landowners logging in.                    │
  └───────────────────────────────────┬────────────────────────────────────┘
                                      │ (audits & acts upon)
  ┌───────────────────────────────────▼────────────────────────────────────┐
@@ -213,8 +213,8 @@ Plus, `parcel_owners` stores the exact `share_percent` (e.g., 60% and 40%).
 
 | Parent Table | Relationship | Child Table | Cardinality | Why this rule exists? |
 |:---|:---:|:---|:---:|:---|
-| `users` | **creates** | `acquisitions` | `1 : N` | One officer can create multiple acquisition cases. Every case tracks who created it. |
-| `users` | **logs** | `status_history` | `1 : N` | Every workflow status change records the officer who approved it. |
+| `users` | **creates** | `acquisitions` | `1 : N` | An administrator can create multiple acquisition cases. Every case tracks who created it. |
+| `users` | **logs** | `status_history` | `1 : N` | Every workflow status change records the administrator who approved it. |
 | `projects` | **initiates** | `acquisitions` | `1 : N` | A government project (e.g., Highway NH-167) acquires multiple land parcels along its route. |
 | `parcels` | **divided into** | `parcel_owners` | `1 : N` | A land parcel can have one or more registered co-owners. |
 | `owners` | **holds share** | `parcel_owners` | `1 : N` | A citizen can own shares in one or multiple land parcels. |
@@ -234,14 +234,14 @@ Here are the complete specifications of all 9 entities, matching the normalizati
 ---
 
 ### 1. `users` (System Accounts)
-*Stores officers and administrators who manage land acquisition.*
+*Stores administrators and landowners who use the system.*
 
 | Column | Data Type | Constraint | Description | Example |
 |:---|:---|:---|:---|:---|
 | `user_id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | Unique internal user ID | `1` |
-| `name` | `VARCHAR(100)` | `NOT NULL` | Full name of the officer/staff | `Officer Ravi` |
-| `email` | `VARCHAR(150)` | `NOT NULL UNIQUE` | Official email login | `ravi@ap.gov.in` |
-| `role` | `VARCHAR(20)` | `NOT NULL CHECK (role IN ('ADMIN', 'OFFICER', 'OWNER'))` | System access role | `OFFICER` |
+| `name` | `VARCHAR(100)` | `NOT NULL` | Full name of the account holder | `Admin Sharma` |
+| `email` | `VARCHAR(150)` | `NOT NULL UNIQUE` | Administrator login | `admin@ap.gov.in` |
+| `role` | `VARCHAR(20)` | `NOT NULL CHECK (role IN ('ADMIN', 'OWNER'))` | System access role | `ADMIN` |
 | `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Account registration time | `2026-11-16 09:00:00` |
 
 ---
@@ -308,7 +308,7 @@ Here are the complete specifications of all 9 entities, matching the normalizati
 | `parcel_id` | `INTEGER` | `NOT NULL REFERENCES parcels(parcel_id) ON DELETE RESTRICT` | Target parcel | `1` |
 | `project_id` | `INTEGER` | `NOT NULL REFERENCES projects(project_id) ON DELETE RESTRICT` | Sponsoring project | `100` |
 | `status` | `VARCHAR(30)` | `NOT NULL DEFAULT 'PROPOSED' CHECK (status IN ('PROPOSED', 'NOTIFIED', 'VALUATED', 'COMPENSATED', 'COMPLETED'))` | Current lifecycle state | `VALUATED` |
-| `created_by` | `INTEGER` | `NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT` | Officer handling case | `1` |
+| `created_by` | `INTEGER` | `NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT` | Admin handling case | `1` |
 | `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Date initiated | `2026-11-16 10:00:00` |
 | `updated_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Last status change | `2026-11-16 14:30:00` |
 | **CONSTRAINT** | `UNIQUE(parcel_id, project_id)` | Prevents acquiring the same parcel twice for the same project | — |
@@ -357,7 +357,7 @@ $$\text{Amount} = \text{area\_sqm} \times \text{market\_rate\_per\_sqm} \times \
 | `acquisition_id` | `INTEGER` | `NOT NULL REFERENCES acquisitions(acquisition_id) ON DELETE CASCADE` | Target acquisition | `501` |
 | `old_status` | `VARCHAR(30)` | `NULL` | Previous stage | `PROPOSED` |
 | `new_status` | `VARCHAR(30)` | `NOT NULL` | Transitioned stage | `NOTIFIED` |
-| `changed_by` | `INTEGER` | `NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT` | Officer who authorized | `1` (Officer Ravi) |
+| `changed_by` | `INTEGER` | `NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT` | Admin who authorized | `1` (Admin Sharma) |
 | `changed_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Exact timestamp | `2026-11-16 10:00:00` |
 
 ---
@@ -368,7 +368,7 @@ How does data move across these entities during a real government acquisition?
 
 ```
    [ PROPOSED ] 
-        │  Officer enters the parcel into the acquisition pipeline.
+        │  Admin enters the parcel into the acquisition pipeline.
         ▼
    [ NOTIFIED ] 
         │  Public notice published; owners alerted; objections window opens.

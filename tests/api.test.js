@@ -11,7 +11,6 @@ const prisma = new PrismaClient();
 
 const PORT = 5055;
 let server;
-let officerToken = '';
 let adminToken = '';
 let landownerToken = '';
 
@@ -81,15 +80,7 @@ async function runTests() {
     const health = await request('GET', '/api/v1/health');
     assert(health.statusCode === 200 && health.body.status === 'healthy', 'GET /api/v1/health returns 200 Healthy');
 
-    // 2. Login as Officer Ravi
-    const officerLogin = await request('POST', '/api/v1/auth/login', {
-      email: 'ravi@ap.gov.in',
-      password: 'password123'
-    });
-    assert(officerLogin.statusCode === 200 && officerLogin.body.data.token, 'POST /api/v1/auth/login (Officer)');
-    officerToken = officerLogin.body.data.token;
-
-    // 3. Login as Admin Sharma
+    // 2. Login as Admin Sharma
     const adminLogin = await request('POST', '/api/v1/auth/login', {
       email: 'admin@ap.gov.in',
       password: 'password123'
@@ -97,7 +88,7 @@ async function runTests() {
     assert(adminLogin.statusCode === 200 && adminLogin.body.data.token, 'POST /api/v1/auth/login (Admin)');
     adminToken = adminLogin.body.data.token;
 
-    // 4. Login as Landowner Suresh
+    // 3. Login as Landowner Suresh
     const ownerLogin = await request('POST', '/api/v1/auth/login', {
       email: 'suresh@gmail.com',
       password: 'password123'
@@ -105,7 +96,7 @@ async function runTests() {
     assert(ownerLogin.statusCode === 200 && ownerLogin.body.data.token, 'POST /api/v1/auth/login (Landowner)');
     landownerToken = ownerLogin.body.data.token;
 
-    // 5. Test RBAC: Landowner trying to create a project should be rejected (403 Forbidden)
+    // 4. Test RBAC: Landowner trying to create a project should be rejected (403 Forbidden)
     const unauthorizedProject = await request(
       'POST',
       '/api/v1/projects',
@@ -114,7 +105,7 @@ async function runTests() {
     );
     assert(unauthorizedProject.statusCode === 403, 'RBAC: Landowner rejected from creating project (403 Forbidden)');
 
-    // 6. Test RBAC: Admin creates a new project
+    // 5. Test RBAC: Admin creates a new project
     const newProject = await request(
       'POST',
       '/api/v1/projects',
@@ -124,7 +115,7 @@ async function runTests() {
     assert(newProject.statusCode === 201 && newProject.body.data.id, 'RBAC: Admin creates Project (201 Created)');
     const createdProjectId = newProject.body.data.id;
 
-    // 7. Officer registers a new parcel
+    // 6. Admin registers a new parcel
     const newParcel = await request(
       'POST',
       '/api/v1/parcels',
@@ -135,12 +126,12 @@ async function runTests() {
         marketRatePerSqm: 800,
         owners: [{ ownerId: 1, sharePercent: 100 }]
       },
-      { Authorization: `Bearer ${officerToken}` }
+      { Authorization: `Bearer ${adminToken}` }
     );
-    assert(newParcel.statusCode === 201 && newParcel.body.data.id, 'POST /api/v1/parcels (Officer registers parcel)');
+    assert(newParcel.statusCode === 201 && newParcel.body.data.id, 'POST /api/v1/parcels (Admin registers parcel)');
     const createdParcelId = newParcel.body.data.id;
 
-    // 8. Officer initiates acquisition workflow
+    // 7. Admin initiates acquisition workflow
     const newAcquisition = await request(
       'POST',
       '/api/v1/acquisitions',
@@ -148,7 +139,7 @@ async function runTests() {
         parcelId: createdParcelId,
         projectId: createdProjectId
       },
-      { Authorization: `Bearer ${officerToken}` }
+      { Authorization: `Bearer ${adminToken}` }
     );
     assert(
       newAcquisition.statusCode === 201 && newAcquisition.body.data.status === 'PROPOSED',
@@ -156,33 +147,33 @@ async function runTests() {
     );
     const createdAcqId = newAcquisition.body.data.id;
 
-    // 9. Advance acquisition status to NOTIFIED
+    // 8. Advance acquisition status to NOTIFIED
     const advanceNotified = await request(
       'PATCH',
       `/api/v1/acquisitions/${createdAcqId}/status`,
       { newStatus: 'NOTIFIED' },
-      { Authorization: `Bearer ${officerToken}` }
+      { Authorization: `Bearer ${adminToken}` }
     );
     assert(
       advanceNotified.statusCode === 200 && advanceNotified.body.data.status === 'NOTIFIED',
       'PATCH /api/v1/acquisitions/:id/status (Transition to NOTIFIED)'
     );
 
-    // 10. Advance acquisition status to VALUATED (triggers auto compensation calculation!)
+    // 9. Advance acquisition status to VALUATED (triggers auto compensation calculation!)
     const advanceValuated = await request(
       'PATCH',
       `/api/v1/acquisitions/${createdAcqId}/status`,
       { newStatus: 'VALUATED' },
-      { Authorization: `Bearer ${officerToken}` }
+      { Authorization: `Bearer ${adminToken}` }
     );
     assert(
       advanceValuated.statusCode === 200 && advanceValuated.body.data.status === 'VALUATED',
       'PATCH /api/v1/acquisitions/:id/status (Transition to VALUATED & auto-compensation generation)'
     );
 
-    // 11. Retrieve compensations for this acquisition
+    // 10. Retrieve compensations for this acquisition
     const compList = await request('GET', `/api/v1/compensations?acquisitionId=${createdAcqId}`, null, {
-      Authorization: `Bearer ${officerToken}`
+      Authorization: `Bearer ${adminToken}`
     });
     assert(
       compList.statusCode === 200 && compList.body.data.length > 0,
@@ -190,14 +181,14 @@ async function runTests() {
     );
     const compRecord = compList.body.data[0];
 
-    // 12. Test Idempotency on Compensation Payment
+    // 11. Test Idempotency on Compensation Payment
     const idempotencyKey = 'test_key_xyz_12345';
     const firstPayment = await request(
       'POST',
       `/api/v1/compensations/${compRecord.id}/pay`,
       {},
       {
-        Authorization: `Bearer ${officerToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Idempotency-Key': idempotencyKey
       }
     );
@@ -206,13 +197,13 @@ async function runTests() {
       'Idempotency First Request: Processed successfully (X-Cache-Lookup: MISS)'
     );
 
-    // 13. Re-send same request with same Idempotency-Key
+    // 12. Re-send same request with same Idempotency-Key
     const secondPayment = await request(
       'POST',
       `/api/v1/compensations/${compRecord.id}/pay`,
       {},
       {
-        Authorization: `Bearer ${officerToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Idempotency-Key': idempotencyKey
       }
     );
@@ -221,7 +212,7 @@ async function runTests() {
       'Idempotency Second Request: Replayed from cache (X-Cache-Lookup: HIT)'
     );
 
-    // 14. File Objection by Landowner
+    // 13. File Objection by Landowner
     const objection = await request(
       'POST',
       '/api/v1/objections',
@@ -235,10 +226,6 @@ async function runTests() {
       objection.statusCode === 201 || objection.statusCode === 403,
       'POST /api/v1/objections (Landowner grievance validation)'
     );
-
-    // 15. Educational OAuth Demo
-    const oauthDemo = await request('GET', '/api/v1/auth/oauth/google-demo');
-    assert(oauthDemo.statusCode === 200 && oauthDemo.body.data.steps, 'GET /api/v1/auth/oauth/google-demo (OAuth 2.0 flow simulation)');
 
     console.log(`\n=======================================================`);
     console.log(`🏁 Test Results: ${passed} Passed, ${failed} Failed`);

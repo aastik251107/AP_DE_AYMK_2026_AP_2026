@@ -14,9 +14,9 @@
 //   a notification directly to your phone!
 //
 // In our Land Acquisition System:
-// Whenever an Officer advances an acquisition status, or a payout is disbursed,
+// Whenever an Admin advances an acquisition status, or a payout is disbursed,
 // our EventBus emits an event. The Server-Sent Events (SSE) stream catches it
-// and pushes it LIVE to all open citizen and officer browsers in real-time!
+// and pushes it LIVE to all open administrator and landowner browsers in real-time!
 // ============================================================================
 
 const EventEmitter = require('events');

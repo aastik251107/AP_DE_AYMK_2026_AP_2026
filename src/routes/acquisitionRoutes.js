@@ -14,9 +14,9 @@ const router = express.Router();
  * Land Acquisition Workflow Engine Endpoints
  * Base Path: /api/v1/acquisitions
  */
-router.get('/', getAcquisitions);
-router.get('/:id', getAcquisitionById);
-router.post('/', authenticate, authorize('ADMIN', 'OFFICER'), createAcquisition);
-router.patch('/:id/status', authenticate, authorize('ADMIN', 'OFFICER'), updateStatus);
+router.get('/', authenticate, getAcquisitions);
+router.get('/:id', authenticate, getAcquisitionById);
+router.post('/', authenticate, authorize('ADMIN'), createAcquisition);
+router.patch('/:id/status', authenticate, authorize('ADMIN'), updateStatus);
 
 module.exports = router;

@@ -42,7 +42,7 @@ server.listen(PORT, async () => {
 // GRACEFUL SHUTDOWN HANDLING (NODE.JS PROCESS MODULE)
 // ----------------------------------------------------------------------------
 // 💡 WHY GRACEFUL SHUTDOWN?
-// If an officer is in the middle of executing a payment when someone terminates
+// If the administrator is in the middle of a payment when someone terminates
 // the server (Ctrl+C), abruptly killing the process could leave database records
 // half-written or corrupted.
 // "Graceful Shutdown" stops accepting new requests, finishes ongoing requests,

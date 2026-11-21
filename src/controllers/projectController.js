@@ -19,7 +19,7 @@ const prisma = new PrismaClient();
 /**
  * 1. CREATE A NEW INFRASTRUCTURE PROJECT
  * POST /api/v1/projects
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { name, department, budget }
  */
 const createProject = async (req, res, next) => {

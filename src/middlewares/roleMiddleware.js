@@ -13,9 +13,8 @@
 //   "You are a Student, only Professors and HOD are permitted inside!" (HTTP 403 Forbidden).
 //
 // 💡 OUR ROLES IN LAND ACQUISITION:
-// 1. ADMIN: Can manage projects, change budgets, and promote officers.
-// 2. OFFICER: Can register parcels, advance acquisition stages, and pay compensations.
-// 3. OWNER: Citizens who can view their own land shares, track payments, and file objections.
+// 1. ADMIN: Manages projects, parcels, acquisitions, payments, and landowner queries.
+// 2. OWNER: Citizens who can view their own payments and queries, and file queries.
 // ============================================================================
 
 const { sendError } = require('../utils/apiResponse');
@@ -27,7 +26,7 @@ const { sendError } = require('../utils/apiResponse');
  * 
  * Example usage in routes:
  *   router.post('/projects', authenticate, authorize('ADMIN'), createProject);
- *   router.post('/acquisitions', authenticate, authorize('ADMIN', 'OFFICER'), createAcquisition);
+ *   router.post('/acquisitions', authenticate, authorize('ADMIN'), createAcquisition);
  */
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {
@@ -53,18 +52,18 @@ const authorize = (...allowedRoles) => {
 
 /**
  * Fine-Grained Ownership Guard:
- * Checks whether the logged-in user is an ADMIN, OFFICER,
+ * Checks whether the logged-in user is an ADMIN,
  * OR the specific Citizen Landowner who owns this particular record.
  * (A farmer in Kurnool should NOT be able to view another farmer's private compensation records!).
  */
-const requireOwnerOrStaff = (getOwnerIdFromReq) => {
+const requireOwnerOrAdmin = (getOwnerIdFromReq) => {
   return (req, res, next) => {
     if (!req.user) {
       return sendError(res, 401, 'Unauthorized: User is not authenticated.');
     }
 
-    // Government Admins and Officers have system-wide authorized access
-    if (req.user.role === 'ADMIN' || req.user.role === 'OFFICER') {
+    // Administrators have system-wide authorized access
+    if (req.user.role === 'ADMIN') {
       return next();
     }
 
@@ -86,5 +85,5 @@ const requireOwnerOrStaff = (getOwnerIdFromReq) => {
 
 module.exports = {
   authorize,
-  requireOwnerOrStaff
+  requireOwnerOrAdmin
 };

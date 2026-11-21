@@ -60,7 +60,6 @@ DROP TYPE IF EXISTS user_role CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'ADMIN',
-    'OFFICER',
     'OWNER'
 );
 
@@ -106,20 +105,20 @@ $$ LANGUAGE plpgsql;
 
 -- ----------------------------------------------------------------------------
 -- Table 1: users (System Logins & Staff Roles)
--- Purpose: Tracks officers and admins authorized to execute land acquisition tasks.
+-- Purpose: Tracks administrators and landowners using the system.
 -- ----------------------------------------------------------------------------
 CREATE TABLE users (
     user_id     SERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
     email       VARCHAR(150) NOT NULL UNIQUE,
-    role        user_role    NOT NULL DEFAULT 'OFFICER',
+    role        user_role    NOT NULL DEFAULT 'OWNER',
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE users IS 'System accounts for officers and administrators.';
+COMMENT ON TABLE users IS 'System accounts for administrators and landowners.';
 COMMENT ON COLUMN users.user_id IS 'Auto-incrementing surrogate primary key.';
 COMMENT ON COLUMN users.email IS 'Unique official login email address.';
-COMMENT ON COLUMN users.role IS 'User role enum: ADMIN, OFFICER, or OWNER.';
+COMMENT ON COLUMN users.role IS 'User role enum: ADMIN or OWNER.';
 
 -- ----------------------------------------------------------------------------
 -- Table 2: owners (Landowner Citizen Registry)
@@ -284,10 +283,9 @@ CREATE INDEX idx_status_history_acq     ON status_history(acquisition_id);
 -- 🌱 SECTION 6: INITIAL SEED DATA (FROM 01_NORMALIZATION.MD)
 -- ============================================================================
 
--- 1. Insert System Users (Officers & Admins)
+-- 1. Insert Administrator Account
 INSERT INTO users (user_id, name, email, role) VALUES
-(1, 'Officer Ravi',  'ravi@ap.gov.in',  'OFFICER'),
-(2, 'Admin Sharma', 'admin@ap.gov.in', 'ADMIN');
+(1, 'Admin Sharma', 'admin@ap.gov.in', 'ADMIN');
 
 -- 2. Insert Landowners
 INSERT INTO owners (owner_id, full_name, phone, id_number) VALUES
@@ -359,7 +357,7 @@ SELECT
     pa.village,
     pa.area_sqm,
     a.status AS workflow_status,
-    u.name AS managing_officer,
+    u.name AS managing_admin,
     a.updated_at AS last_updated
 FROM acquisitions a
 JOIN projects pr ON a.project_id = pr.project_id
@@ -418,7 +416,7 @@ SELECT
     COALESCE(TO_CHAR(payment_date, 'YYYY-MM-DD HH24:MI:SS'), 'PENDING DISBURSEMENT') AS disbursement_time
 FROM view_landowner_compensations;
 
--- Query 4: Open Grievances Requiring Officer Action
+-- Query 4: Open Landowner Queries Requiring Admin Review
 SELECT
     ob.objection_id,
     a.acquisition_id,

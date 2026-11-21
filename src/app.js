@@ -67,16 +67,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // a future version v2, existing mobile apps and services don't break!
 app.use('/api/v1', routes);
 
-// Fallback endpoint for root URL
-app.get('/', (req, res) => {
-  res.status(200).json({
-    project: 'Real-Time System for Land Acquisition',
-    team: 'AYMK 2026 (Aastik, Yashmeet, Mann, Krishna)',
-    apiVersion: 'v1',
-    documentation: '/api/v1/health',
-    dashboard: '/'
-  });
-});
+// Express static middleware above serves public/index.html at `/`.
 
 // ============================================================================
 // 3. ERROR HANDLING MIDDLEWARES

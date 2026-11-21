@@ -15,6 +15,6 @@ const router = express.Router();
  */
 router.get('/', authenticate, getObjections);
 router.post('/', authenticate, fileObjection);
-router.patch('/:id/status', authenticate, authorize('ADMIN', 'OFFICER'), updateObjectionStatus);
+router.patch('/:id/status', authenticate, authorize('ADMIN'), updateObjectionStatus);
 
 module.exports = router;

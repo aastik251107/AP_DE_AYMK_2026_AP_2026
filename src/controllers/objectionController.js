@@ -10,7 +10,7 @@
 //    (e.g., "Market circle rate was updated, compensation is too low").
 // 2. Verifies that the citizen actually owns an ownership share in that parcel
 //    before allowing them to file.
-// 3. Allows Land Officers to review, settle, or reject grievances.
+// 3. Allows Administrators to review, settle, or reject grievances.
 // ============================================================================
 
 const { PrismaClient } = require('@prisma/client');
@@ -22,7 +22,7 @@ const prisma = new PrismaClient();
 /**
  * 1. FILE A CITIZEN GRIEVANCE / OBJECTION
  * POST /api/v1/objections
- * Access: OWNER, OFFICER, ADMIN
+ * Access: OWNER, ADMIN
  * Body: { acquisitionId, reason, ownerId? }
  */
 const fileObjection = async (req, res, next) => {
@@ -44,7 +44,7 @@ const fileObjection = async (req, res, next) => {
       }
       targetOwnerId = req.user.ownerProfile.id;
     } else {
-      // If Officer or Admin is filing on behalf of a citizen, require ownerId
+      // If an Admin is filing on behalf of a citizen, require ownerId
       if (!ownerId) {
         return sendError(res, 400, 'Staff filing an objection must specify the citizen ownerId.');
       }
@@ -95,7 +95,7 @@ const fileObjection = async (req, res, next) => {
       }
     });
 
-    // Broadcast grievance live to officers on the EventBus
+    // Broadcast the new query live to connected dashboards on the EventBus
     eventBus.emitEvent('objection:filed', {
       objectionId: objection.id,
       acquisitionId: acqId,
@@ -154,7 +154,7 @@ const getObjections = async (req, res, next) => {
 /**
  * 3. REVIEW OR RESOLVE OBJECTION
  * PATCH /api/v1/objections/:id/status
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { status: "UNDER_REVIEW" | "RESOLVED" | "REJECTED", resolutionNotes? }
  */
 const updateObjectionStatus = async (req, res, next) => {
@@ -200,7 +200,7 @@ const updateObjectionStatus = async (req, res, next) => {
       ownerName: objection.owner.fullName,
       newStatus: status,
       resolvedBy: req.user.name,
-      resolutionNotes: resolutionNotes || 'Status updated by authorized officer'
+      resolutionNotes: resolutionNotes || 'Status updated by administrator'
     });
 
     return sendSuccess(res, 200, `Objection status updated to '${status}'`, updated);

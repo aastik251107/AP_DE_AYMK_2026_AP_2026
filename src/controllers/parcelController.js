@@ -20,7 +20,7 @@ const prisma = new PrismaClient();
 /**
  * 1. REGISTER A NEW LAND PARCEL
  * POST /api/v1/parcels
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { surveyNumber, village, areaSqm, marketRatePerSqm, owners? }
  */
 const createParcel = async (req, res, next) => {
@@ -155,6 +155,34 @@ const getParcels = async (req, res, next) => {
   }
 };
 
+/** GET /api/v1/parcels/mine — only parcels linked to the signed-in owner. */
+const getMyParcels = async (req, res, next) => {
+  try {
+    const ownerId = req.user.ownerProfile?.id;
+    if (!ownerId) return sendSuccess(res, 200, 'No owner profile is linked to this account', []);
+
+    const parcels = await prisma.parcel.findMany({
+      where: { parcelOwners: { some: { ownerId } } },
+      include: {
+        parcelOwners: {
+          include: { owner: { select: { id: true, fullName: true, phone: true, idNumber: true } } }
+        },
+        acquisitions: {
+          select: { id: true, status: true, project: { select: { id: true, name: true } } }
+        }
+      },
+      orderBy: { id: 'asc' }
+    });
+    const enriched = parcels.map(parcel => ({
+      ...parcel,
+      totalValuation: parcel.areaSqm * parcel.marketRatePerSqm
+    }));
+    return sendSuccess(res, 200, 'Your parcels retrieved successfully', enriched);
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * 3. GET PARCEL BY ID
  * GET /api/v1/parcels/:id
@@ -198,7 +226,7 @@ const getParcelById = async (req, res, next) => {
 /**
  * 4. ASSIGN OR UPDATE CO-OWNERSHIP SHARE (MANY-TO-MANY JUNCTION)
  * POST /api/v1/parcels/:id/owners
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { ownerId, sharePercent }
  * 
  * 💡 BUSINESS VALIDATION:
@@ -318,6 +346,7 @@ const getOwnersList = async (req, res, next) => {
 module.exports = {
   createParcel,
   getParcels,
+  getMyParcels,
   getParcelById,
   assignOwnerShare,
   registerOwner,

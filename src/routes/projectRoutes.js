@@ -22,7 +22,7 @@ router.get('/', getProjects);
 router.get('/:id', getProjectById);
 
 // Staff-only mutation actions
-router.post('/', authenticate, authorize('ADMIN', 'OFFICER'), createProject);
+router.post('/', authenticate, authorize('ADMIN'), createProject);
 router.put('/:id', authenticate, authorize('ADMIN'), updateProject);
 router.delete('/:id', authenticate, authorize('ADMIN'), deleteProject);
 

@@ -23,7 +23,7 @@ That's it! In databases, normalization means **splitting one giant, messy table 
 
 ## 😱 2. The Starting Point: The Giant Messy Table (UNF / 0NF)
 
-Imagine an officer enters all land acquisition records into **one single Excel row**:
+Imagine an administrator enters all land acquisition records into **one single Excel row**:
 
 ### The "Messy Register" Table:
 | Survey_No | Village | Area_sqm | Owner_Names | Owner_Phones | Share_% | Project_Name | Budget | Comp_Amount | Payment_Status |
@@ -138,7 +138,7 @@ Now we look at our workflow:
 - A parcel gets linked to a project &rarr; this is an **Acquisition**.
 - Once an acquisition happens, we calculate **Compensation** for each owner.
 - Owners might file an **Objection** (dispute).
-- Officers move the acquisition through stages:  
+- Administrators move the acquisition through stages:
   `PROPOSED` &rarr; `NOTIFIED` &rarr; `VALUATED` &rarr; `COMPENSATED` &rarr; `COMPLETED`.
 
 If we tried to stuff compensation and objections into the `acquisitions` table:
@@ -151,7 +151,7 @@ Give these independent processes their own tables!
 #### Table E: `acquisitions` (Links Parcel &rarr; Project)
 | acquisition_id (PK) | parcel_id (FK) | project_id (FK) | status | created_by |
 |:---|:---|:---|:---|:---|
-| 501 | 1 | 100 | VALUATED | Officer Ravi |
+| 501 | 1 | 100 | VALUATED | Admin Sharma |
 
 #### Table F: `compensations` (Calculated Money per Owner)
 *Formula: `area_sqm × market_rate × share_% / 100`*
@@ -168,7 +168,7 @@ Give these independent processes their own tables!
 #### Table H: `users` (System Logins & Roles)
 | user_id (PK) | name | email | role |
 |:---|:---|:---|:---|
-| 1 | Officer Ravi | ravi@ap.gov.in | OFFICER |
+| 1 | Admin Sharma | admin@ap.gov.in | ADMIN |
 | 2 | Admin Sharma | admin@ap.gov.in | ADMIN |
 
 #### Table I: `status_history` (Audit Log of Every Step)
@@ -216,7 +216,7 @@ There are no weird overlapping keys or hidden determinants. Our database is full
 
 Our final database has exactly **9 clean tables**:
 
-1. `users` &rarr; System accounts (Admin / Officer / Owner)
+1. `users` &rarr; System accounts (Admin / Owner)
 2. `owners` &rarr; Landowners with ID numbers and phone
 3. `parcels` &rarr; Land registry with survey numbers, area, rates
 4. `parcel_owners` &rarr; Links owners to parcels with their share % (sum = 100%)

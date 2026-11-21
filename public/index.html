@@ -6,7 +6,7 @@
   <title>Real-Time Land Acquisition System | AYMK 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0b0f19;
@@ -19,8 +19,8 @@
       --accent-danger: #ef4444;
       --text: #f3f4f6;
       --text-muted: #9ca3af;
-      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Manrope', system-ui, sans-serif;
+      --font-mono: 'DM Mono', monospace;
     }
 
     * {
@@ -101,7 +101,6 @@
     }
 
     .role-badge.admin { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
-    .role-badge.officer { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
     .role-badge.owner { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
 
     .btn {
@@ -337,9 +336,67 @@
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
     }
+
+    .inline-form { background:#f7f8f5; border:1px solid var(--card-border); border-radius:7px; padding:1rem; margin:0 0 1rem; }
+    .role-hidden { display:none !important; }
+    .inline-form h3 { font-size:.95rem; margin-bottom:.75rem; }
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.75rem; align-items:end; }
+    .form-control { width:100%; padding:.65rem .75rem; border:1px solid #cfd8d0; border-radius:5px; font:inherit; font-size:.88rem; }
+    .form-group { margin:0; }
+    .form-group label { display:block; color:var(--text-muted); font-size:.75rem; font-weight:700; margin-bottom:.3rem; }
+    .notice { display:none; padding:.7rem .9rem; margin:0 0 1rem; border-radius:5px; background:#e8f0eb; color:#2c5648; font-size:.88rem; }
+    .notice.error { background:#f9e9e6; color:#933c31; }
+    #toast { position:fixed; bottom:1.25rem; left:50%; transform:translateX(-50%); background:#26352f; color:#fff; padding:.8rem 1.1rem; border-radius:6px; box-shadow:0 8px 24px #13231d30; display:none; z-index:100; }
+    .login-page { min-height:100vh; display:grid; place-items:center; padding:1.25rem; background:linear-gradient(135deg,#f5f6f2,#e7eee8); }
+    .login-card { width:min(100%,430px); background:#fff; border:1px solid var(--card-border); border-radius:10px; padding:2.1rem; box-shadow:0 16px 40px #20352b12; }
+    .login-logo { margin-bottom:1.2rem; }
+    .login-card h1 { font:400 1.8rem 'DM Serif Display',Georgia,serif; margin:.3rem 0 .4rem; }
+    .login-intro { color:var(--text-muted); font-size:.9rem; margin-bottom:1.4rem; }
+    .eyebrow { color:var(--primary); font-size:.7rem; font-weight:800; letter-spacing:.12em; }
+    .login-card .form-group { margin-bottom:1rem; }
+    .login-submit { width:100%; justify-content:center; padding:.7rem; margin-top:.25rem; }
+    .demo-accounts { margin-top:1.2rem; color:var(--text-muted); font-size:.8rem; }
+    .demo-accounts summary { cursor:pointer; font-weight:700; }
+    .demo-accounts p { margin:.45rem 0 0; }
+    .role-switch { margin-top:1.1rem; color:var(--text-muted); font-size:.78rem; }
+    .role-switch-buttons { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; margin-top:.5rem; }
+    .role-switch-buttons .btn { justify-content:center; font-size:.78rem; padding:.55rem .4rem; }
+
+    /* Plain, readable light theme for the project dashboard. */
+    :root { --bg:#f5f6f2; --card-bg:#fff; --card-border:#dfe5dc; --primary:#386b5a; --primary-hover:#2c5648; --accent:#386b5a; --text:#26352f; --text-muted:#6c7971; }
+    body { background:var(--bg); color:var(--text); }
+    header { background:#fff; backdrop-filter:none; box-shadow:0 1px 3px #15283a12; }
+    .brand-logo { background:#386b5a; border-radius:6px; box-shadow:none; }
+    .brand-title h1, .card h2 { font-family:'DM Serif Display', Georgia, serif; font-weight:400; letter-spacing:.01em; }
+    .brand-title h1 { font-size:1.3rem; }
+    .role-badge { background:#f1f4f7; color:#46525e; border-color:#dce2e8; }
+    .role-badge.admin { background:#fcebea; color:#a33b36; border-color:#f2cbc8; }
+    .role-badge.owner { background:#f8eee5; color:#98643c; border-color:#ead6c3; }
+    .btn { border-radius:5px; }
+    .btn-secondary { background:#fff; color:#354250; border-color:#cfd7df; }
+    .btn-secondary:hover { background:#f0f3f6; }
+    .btn-success { background:#287a56; }
+    .nav-tab { border-radius:5px 5px 0 0; }
+    .nav-tab.active { background:#e8f0eb; color:#386b5a; }
+    .card { border-radius:7px; box-shadow:0 1px 2px #15283a0a; }
+    td { border-bottom-color:#edf0f3; }
+    tr:hover { background:#f7f9fb; }
+    .status-PROPOSED { background:#edf0f3; color:#4c5864; }
+    .status-NOTIFIED { background:#e5eff9; color:#315f8c; }
+    .status-VALUATED, .status-PENDING { background:#fff3d9; color:#8b6115; }
+    .status-COMPENSATED, .status-COMPLETED, .status-PAID { background:#e5f3eb; color:#287a56; }
+    .status-OPEN { background:#fff3d9; color:#8b6115; }
+    .status-UNDER_REVIEW { background:#e5eff9; color:#315f8c; }
+    .status-RESOLVED { background:#e5f3eb; color:#287a56; }
+    .status-REJECTED { background:#f9e9e6; color:#933c31; }
+    .event-item { background:#f7f9fb; }
+    .form-control { background:#fff; color:var(--text); }
+    @media (max-width: 700px) { header { align-items:flex-start; gap:1rem; flex-direction:column; padding:1rem; } .auth-bar { flex-wrap:wrap; gap:.5rem; } main { padding:1rem; gap:1rem; } .card { padding:1rem; } }
   </style>
 </head>
 <body>
+
+  <div id="appShell">
 
   <!-- Top Navigation Header -->
   <header>
@@ -347,7 +404,7 @@
       <div class="brand-logo">AP</div>
       <div class="brand-title">
         <h1>Land Acquisition System</h1>
-        <p>Real-Time Workflow, RBAC & Smart Compensations (AYMK 2026)</p>
+        <p>Node.js · Express REST API · Prisma database (AYMK 2026)</p>
       </div>
     </div>
 
@@ -355,10 +412,11 @@
       <span class="live-indicator">
         <span class="live-pulse"></span> SSE Connected
       </span>
-      <div id="currentUserBadge" class="role-badge officer">OFFICER: Officer Ravi</div>
-      <button class="btn btn-secondary" onclick="quickLogin('admin@ap.gov.in', 'ADMIN')">Admin</button>
-      <button class="btn btn-secondary" onclick="quickLogin('ravi@ap.gov.in', 'OFFICER')">Officer</button>
-      <button class="btn btn-secondary" onclick="quickLogin('suresh@gmail.com', 'OWNER')">Landowner</button>
+      <div id="currentUserBadge" class="role-badge admin">ADMIN: Admin Sharma</div>
+      <div class="role-switch-buttons" aria-label="Switch dashboard role">
+        <button class="btn btn-secondary" type="button" onclick="switchRole('admin@ap.gov.in')">Admin View</button>
+        <button class="btn btn-secondary" type="button" onclick="switchRole('suresh@gmail.com')">Landowner View</button>
+      </div>
     </div>
   </header>
 
@@ -367,21 +425,29 @@
     <!-- Left Column: Tabs and Data Management -->
     <div>
       <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('acquisitions')">Acquisitions Pipeline</button>
-        <button class="nav-tab" onclick="switchTab('parcels')">Parcels & Valuation</button>
-        <button class="nav-tab" onclick="switchTab('projects')">Infrastructure Projects</button>
-        <button class="nav-tab" onclick="switchTab('compensations')">Compensations Payouts</button>
-        <button class="nav-tab" onclick="switchTab('objections')">Citizen Grievances</button>
-        <button class="nav-tab" onclick="switchTab('oauth')">OAuth 2.0 Flow Demo</button>
+        <button class="nav-tab active" data-roles="ADMIN,OWNER" onclick="switchTab('acquisitions')">Acquisitions</button>
+        <button class="nav-tab" data-roles="ADMIN,OWNER" onclick="switchTab('parcels')" id="parcelsTabButton">Parcels & Valuation</button>
+        <button class="nav-tab" data-roles="ADMIN" onclick="switchTab('projects')">Infrastructure Projects</button>
+        <button class="nav-tab" data-roles="ADMIN,OWNER" onclick="switchTab('compensations')">Compensations</button>
+        <button class="nav-tab" data-roles="ADMIN,OWNER" onclick="switchTab('objections')">Landowner Queries</button>
       </div>
+      <div id="pageNotice" class="notice" role="status"></div>
 
       <!-- Tab 1: Acquisitions -->
-      <div id="tab-acquisitions" class="tab-content">
+      <div id="tab-acquisitions" class="tab-content" data-roles="ADMIN,OWNER">
         <div class="card">
           <h2>
             Active Land Acquisitions
-            <button class="btn btn-primary" onclick="showNewAcquisitionModal()">+ Initiate Acquisition</button>
+            <button class="btn btn-primary" data-roles="ADMIN" onclick="showForm('acquisitionForm')">+ Initiate Acquisition</button>
           </h2>
+          <form id="acquisitionForm" class="inline-form" data-roles="ADMIN" hidden>
+            <h3>Start a land acquisition</h3>
+            <div class="form-grid">
+              <div class="form-group"><label for="acqParcel">Land parcel</label><select class="form-control" id="acqParcel" required></select></div>
+              <div class="form-group"><label for="acqProject">Infrastructure project</label><select class="form-control" id="acqProject" required></select></div>
+              <button class="btn btn-primary" type="submit">Save acquisition</button>
+            </div>
+          </form>
           <div class="table-responsive">
             <table>
               <thead>
@@ -403,9 +469,18 @@
       </div>
 
       <!-- Tab 2: Parcels -->
-      <div id="tab-parcels" class="tab-content" style="display: none;">
+      <div id="tab-parcels" class="tab-content" data-roles="ADMIN,OWNER" style="display: none;">
         <div class="card">
-          <h2>Cadastral Parcels Registry</h2>
+          <h2 id="parcelHeading">Cadastral Parcels Registry <button class="btn btn-primary" data-roles="ADMIN" onclick="showForm('parcelForm')">+ Register parcel</button></h2>
+          <form id="parcelForm" class="inline-form" data-roles="ADMIN" hidden>
+            <h3>Register land parcel</h3><div class="form-grid">
+              <div class="form-group"><label for="parcelSurvey">Survey number</label><input class="form-control" id="parcelSurvey" required></div>
+              <div class="form-group"><label for="parcelVillage">Village</label><input class="form-control" id="parcelVillage" required></div>
+              <div class="form-group"><label for="parcelArea">Area (sqm)</label><input class="form-control" id="parcelArea" type="number" min="1" step="any" required></div>
+              <div class="form-group"><label for="parcelRate">Circle rate (₹/sqm)</label><input class="form-control" id="parcelRate" type="number" min="1" step="any" required></div>
+              <button class="btn btn-primary" type="submit">Save parcel</button>
+            </div>
+          </form>
           <div class="table-responsive">
             <table>
               <thead>
@@ -422,12 +497,43 @@
             </table>
           </div>
         </div>
+        <div class="card" data-roles="ADMIN">
+          <h2>Landowner registry</h2>
+          <form id="ownerForm" class="inline-form" data-roles="ADMIN">
+            <h3>Register a landowner</h3><div class="form-grid">
+              <div class="form-group"><label for="ownerName">Full name</label><input class="form-control" id="ownerName" required></div>
+              <div class="form-group"><label for="ownerPhone">Phone</label><input class="form-control" id="ownerPhone" required></div>
+              <div class="form-group"><label for="ownerIdNumber">ID number</label><input class="form-control" id="ownerIdNumber" required></div>
+              <button class="btn btn-primary" type="submit">Save landowner</button>
+            </div>
+          </form>
+          <form id="shareForm" class="inline-form" data-roles="ADMIN">
+            <h3>Assign a parcel ownership share</h3><div class="form-grid">
+              <div class="form-group"><label for="shareParcel">Parcel</label><select class="form-control" id="shareParcel" required></select></div>
+              <div class="form-group"><label for="shareOwner">Landowner</label><select class="form-control" id="shareOwner" required></select></div>
+              <div class="form-group"><label for="sharePercent">Share (%)</label><input class="form-control" id="sharePercent" type="number" min="0.01" max="100" step="any" required></div>
+              <button class="btn btn-primary" type="submit">Save ownership</button>
+            </div>
+          </form>
+          <div class="table-responsive"><table>
+            <thead><tr><th>Owner ID</th><th>Landowner</th><th>Phone</th><th>Identity reference</th><th>Parcels linked</th></tr></thead>
+            <tbody id="ownersTableBody"></tbody>
+          </table></div>
+        </div>
       </div>
 
       <!-- Tab 3: Projects -->
-      <div id="tab-projects" class="tab-content" style="display: none;">
+      <div id="tab-projects" class="tab-content" data-roles="ADMIN" style="display: none;">
         <div class="card">
-          <h2>Government Infrastructure Schemes</h2>
+          <h2>Government Infrastructure Schemes <button class="btn btn-primary" data-roles="ADMIN" onclick="showForm('projectForm')">+ Add project</button></h2>
+          <form id="projectForm" class="inline-form" data-roles="ADMIN" hidden>
+            <h3>Add infrastructure project</h3><div class="form-grid">
+              <div class="form-group"><label for="projectName">Project name</label><input class="form-control" id="projectName" required></div>
+              <div class="form-group"><label for="projectDepartment">Department</label><input class="form-control" id="projectDepartment" required></div>
+              <div class="form-group"><label for="projectBudget">Budget (₹)</label><input class="form-control" id="projectBudget" type="number" min="0" step="any" required></div>
+              <button class="btn btn-primary" type="submit">Save project</button>
+            </div>
+          </form>
           <div class="table-responsive">
             <table>
               <thead>
@@ -446,7 +552,7 @@
       </div>
 
       <!-- Tab 4: Compensations -->
-      <div id="tab-compensations" class="tab-content" style="display: none;">
+      <div id="tab-compensations" class="tab-content" data-roles="ADMIN,OWNER" style="display: none;">
         <div class="card">
           <h2>
             Compensations Ledger
@@ -471,12 +577,31 @@
       </div>
 
       <!-- Tab 5: Objections -->
-      <div id="tab-objections" class="tab-content" style="display: none;">
+      <div id="tab-objections" class="tab-content" data-roles="ADMIN,OWNER" style="display: none;">
+        <div class="card">
+          <h2>How a landowner query is handled</h2>
+          <ol style="padding-left:1.25rem;color:var(--text-muted);font-size:.9rem;display:grid;gap:.45rem">
+            <li><strong>Landowner files a query.</strong> The signed-in owner selects one of their own acquisitions and writes the reason.</li>
+            <li><strong>The backend checks ownership.</strong> It verifies the landowner is linked to the parcel, then saves the query as <b>OPEN</b>.</li>
+            <li><strong>Admin reviews it.</strong> Admin changes the status to <b>UNDER_REVIEW</b> while checking the issue.</li>
+            <li><strong>Admin records the outcome.</strong> The query becomes <b>RESOLVED</b> or <b>REJECTED</b>; the landowner can see the new status.</li>
+            <li><strong>Acquisition may finish.</strong> An acquisition cannot move to COMPLETED while a query is OPEN or UNDER_REVIEW, or while compensation is unpaid.</li>
+          </ol>
+          <p style="margin-top:.75rem;color:var(--text-muted);font-size:.8rem">Each change is saved through the Express API and Prisma. The live event panel also receives an update.</p>
+        </div>
         <div class="card">
           <h2>
             Citizen Grievances & Objections
-            <button class="btn btn-primary" onclick="showFileObjectionModal()">+ File Grievance</button>
+            <button class="btn btn-primary" onclick="showForm('objectionForm')">+ File Query</button>
           </h2>
+          <form id="objectionForm" class="inline-form" hidden>
+            <h3>File a grievance</h3><div class="form-grid">
+              <div class="form-group"><label for="objectionAcquisition">Acquisition</label><select class="form-control" id="objectionAcquisition" required></select></div>
+              <div class="form-group"><label for="objectionOwner">Landowner</label><select class="form-control" id="objectionOwner" required></select></div>
+              <div class="form-group"><label for="objectionReason">Reason</label><input class="form-control" id="objectionReason" required></div>
+              <button class="btn btn-primary" type="submit">Save grievance</button>
+            </div>
+          </form>
           <div class="table-responsive">
             <table>
               <thead>
@@ -495,22 +620,10 @@
         </div>
       </div>
 
-      <!-- Tab 6: OAuth 2.0 Demo -->
-      <div id="tab-oauth" class="tab-content" style="display: none;">
-        <div class="card">
-          <h2>OAuth 2.0 Authorization Code Flow Simulation</h2>
-          <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">
-            This interactive demo showcases the exact OAuth 2.0 flow covered in lecture:
-            User consent, Authorization Code redirection, Token Exchange, and Resource Profile fetch.
-          </p>
-          <button class="btn btn-primary" onclick="runOAuthDemo()">Run Simulated OAuth 2.0 Flow</button>
-          <pre id="oauthOutput" style="margin-top: 1rem; background: #0d131f; padding: 1rem; border-radius: 6px; font-family: var(--font-mono); font-size: 0.75rem; overflow-x: auto;">Click above to inspect the step-by-step OAuth 2.0 protocol exchange.</pre>
-        </div>
-      </div>
     </div>
 
     <!-- Right Column: Real-Time SSE Event Stream Feed -->
-    <div>
+    <div data-roles="ADMIN">
       <div class="card">
         <h2>
           <span>Real-Time Event Stream</span>
@@ -528,14 +641,18 @@
       </div>
     </div>
   </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
 
   <script>
     let authToken = '';
-    let currentUser = { email: 'ravi@ap.gov.in', role: 'OFFICER', name: 'Officer Ravi' };
+    let currentUser = {};
+    let evtSource = null;
 
     // Initialize Server-Sent Events (SSE) listener
     function initSSE() {
-      const evtSource = new EventSource('/api/v1/realtime/stream');
+      if (evtSource) evtSource.close();
+      evtSource = new EventSource('/api/v1/realtime/stream', { withCredentials: true });
 
       evtSource.onmessage = function(e) {
         try {
@@ -573,7 +690,7 @@
       container.insertBefore(item, container.firstChild);
     }
 
-    async function quickLogin(email, role) {
+    async function switchRole(email) {
       try {
         const res = await fetch('/api/v1/auth/login', {
           method: 'POST',
@@ -581,27 +698,159 @@
           body: JSON.stringify({ email, password: 'password123' })
         });
         const result = await res.json();
-        if (result.success) {
-          authToken = result.data.token;
-          currentUser = result.data.user;
-          const badge = document.getElementById('currentUserBadge');
-          badge.textContent = `${currentUser.role}: ${currentUser.name}`;
-          badge.className = `role-badge ${currentUser.role.toLowerCase()}`;
-          alert(`Logged in as ${currentUser.name} (${currentUser.role})`);
-          refreshAll();
-        } else {
-          alert('Login failed: ' + result.message);
-        }
+        if (!res.ok || !result.success) throw new Error(result.message || 'Email or password is incorrect.');
+        authToken = result.data.token;
+        const profile = await apiRequest('/api/v1/auth/me');
+        currentUser = profile.data;
+        const badge = document.getElementById('currentUserBadge');
+        badge.textContent = `${currentUser.role === 'OWNER' ? 'LANDOWNER' : 'ADMIN'}: ${currentUser.name}`;
+        badge.className = `role-badge ${currentUser.role.toLowerCase()}`;
+        document.getElementById('parcelsTabButton').textContent = currentUser.role === 'OWNER' ? 'My Land' : 'Parcels & Valuation';
+        document.getElementById('parcelHeading').childNodes[0].textContent = currentUser.role === 'OWNER' ? 'My Land Parcels ' : 'Cadastral Parcels Registry ';
+        applyRolePermissions();
+        const initialTab = currentUser.role === 'OWNER' ? 'acquisitions' : 'acquisitions';
+        switchTab(initialTab);
+        initSSE();
+        refreshAll();
+        showNotice(`Showing ${currentUser.role === 'OWNER' ? 'landowner' : 'admin'} view for ${currentUser.name}.`);
       } catch (err) {
-        console.error('Login error:', err);
+        showNotice(err.message === 'Failed to fetch' ? 'Could not reach the server. Start the project server, then reload.' : err.message, true);
       }
     }
 
-    function switchTab(tabId) {
+    function switchTab(tabId, button) {
+      const panel = document.getElementById(`tab-${tabId}`);
+      if (!panel || panel.classList.contains('role-hidden')) return;
       document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-      document.getElementById(`tab-${tabId}`).style.display = 'block';
-      event.target.classList.add('active');
+      panel.style.display = 'block';
+      const tabButton = button || document.querySelector(`.nav-tab[onclick*="${tabId}"]`);
+      if (tabButton) tabButton.classList.add('active');
+    }
+
+    async function apiRequest(url, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (authToken) headers.Authorization = `Bearer ${authToken}`;
+      if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+      const response = await fetch(url, { ...options, headers });
+      const result = await response.json();
+      if (!response.ok || result.success === false) throw new Error(result.message || `Request failed (${response.status})`);
+      return result;
+    }
+
+    let noticeTimer;
+    function showNotice(message, isError = false) {
+      const notice = document.getElementById('pageNotice');
+      notice.textContent = message;
+      notice.classList.toggle('error', isError);
+      notice.style.display = 'block';
+      clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => { notice.style.display = 'none'; }, 5000);
+    }
+
+    function showForm(id) {
+      const form = document.getElementById(id);
+      if (!hasRoleAccess(form)) return;
+      form.hidden = !form.hidden;
+      if (!form.hidden) form.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+
+    function hasRoleAccess(element) {
+      const allowed = (element.dataset.roles || '').split(',').filter(Boolean);
+      return !allowed.length || allowed.includes(currentUser.role);
+    }
+
+    function applyRolePermissions() {
+      document.querySelectorAll('[data-roles]').forEach(element => {
+        element.classList.toggle('role-hidden', !hasRoleAccess(element));
+        if (!hasRoleAccess(element) && element.matches('form')) element.hidden = true;
+      });
+    }
+
+    function fillSelect(id, records, labelFn, placeholder) {
+      const select = document.getElementById(id);
+      const current = select.value;
+      select.innerHTML = `<option value="">${placeholder}</option>`;
+      records.forEach(record => {
+        const option = document.createElement('option');
+        option.value = record.id;
+        option.textContent = labelFn(record);
+        select.appendChild(option);
+      });
+      if (records.some(record => String(record.id) === current)) select.value = current;
+    }
+
+    function bindForms() {
+      document.getElementById('projectForm').addEventListener('submit', async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        try {
+          await apiRequest('/api/v1/projects', { method:'POST', body:JSON.stringify({ name:document.getElementById('projectName').value.trim(), department:document.getElementById('projectDepartment').value.trim(), budget:Number(document.getElementById('projectBudget').value) }) });
+          form.reset(); form.hidden = true; showNotice('Project saved to the database.'); fetchProjects();
+        } catch (error) { showNotice(error.message, true); }
+      });
+      document.getElementById('parcelForm').addEventListener('submit', async event => {
+        event.preventDefault(); const form = event.currentTarget;
+        try {
+          await apiRequest('/api/v1/parcels', { method:'POST', body:JSON.stringify({ surveyNumber:document.getElementById('parcelSurvey').value.trim(), village:document.getElementById('parcelVillage').value.trim(), areaSqm:Number(document.getElementById('parcelArea').value), marketRatePerSqm:Number(document.getElementById('parcelRate').value) }) });
+          form.reset(); form.hidden = true; showNotice('Parcel saved. Assign an owner share below.'); fetchParcels();
+        } catch (error) { showNotice(error.message, true); }
+      });
+      document.getElementById('ownerForm').addEventListener('submit', async event => {
+        event.preventDefault(); const form = event.currentTarget;
+        try {
+          await apiRequest('/api/v1/parcels/owners/register', { method:'POST', body:JSON.stringify({ fullName:document.getElementById('ownerName').value.trim(), phone:document.getElementById('ownerPhone').value.trim(), idNumber:document.getElementById('ownerIdNumber').value.trim() }) });
+          form.reset(); showNotice('Landowner saved to the registry.'); fetchOwners();
+        } catch (error) { showNotice(error.message, true); }
+      });
+      document.getElementById('shareForm').addEventListener('submit', async event => {
+        event.preventDefault(); const form = event.currentTarget;
+        try {
+          await apiRequest(`/api/v1/parcels/${document.getElementById('shareParcel').value}/owners`, { method:'POST', body:JSON.stringify({ ownerId:Number(document.getElementById('shareOwner').value), sharePercent:Number(document.getElementById('sharePercent').value) }) });
+          form.reset(); showNotice('Ownership share saved.'); fetchParcels(); fetchOwners();
+        } catch (error) { showNotice(error.message, true); }
+      });
+      document.getElementById('acquisitionForm').addEventListener('submit', async event => {
+        event.preventDefault(); const form = event.currentTarget;
+        try {
+          await apiRequest('/api/v1/acquisitions', { method:'POST', body:JSON.stringify({ parcelId:Number(document.getElementById('acqParcel').value), projectId:Number(document.getElementById('acqProject').value) }) });
+          form.reset(); form.hidden = true; showNotice('Acquisition saved with status PROPOSED.'); refreshAll();
+        } catch (error) { showNotice(error.message, true); }
+      });
+      document.getElementById('objectionForm').addEventListener('submit', async event => {
+        event.preventDefault(); const form = event.currentTarget;
+        const payload = { acquisitionId:Number(document.getElementById('objectionAcquisition').value), reason:document.getElementById('objectionReason').value.trim() };
+        if (currentUser.role !== 'OWNER') payload.ownerId = Number(document.getElementById('objectionOwner').value);
+        try {
+          await apiRequest('/api/v1/objections', { method:'POST', body:JSON.stringify(payload) });
+          form.reset(); form.hidden = true; showNotice('Grievance saved.'); fetchObjections();
+        } catch (error) { showNotice(error.message, true); }
+      });
+    }
+
+    async function fetchOwners() {
+      if (currentUser.role === 'OWNER') {
+        const objectionOwner = document.getElementById('objectionOwner');
+        if (currentUser.ownerProfile) objectionOwner.value = currentUser.ownerProfile.id;
+        objectionOwner.disabled = true;
+        return;
+      }
+      try {
+        const result = await apiRequest('/api/v1/parcels/owners/list');
+        const owners = result.data || [];
+        fillSelect('shareOwner', owners, owner => `${owner.fullName} (#${owner.id})`, 'Choose landowner');
+        fillSelect('objectionOwner', owners, owner => `${owner.fullName} (#${owner.id})`, 'Choose landowner');
+        const ownersBody = document.getElementById('ownersTableBody');
+        ownersBody.innerHTML = owners.length ? '' : '<tr><td colspan="5">No landowners registered yet.</td></tr>';
+        owners.forEach(owner => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>#${owner.id}</td><td>${owner.fullName}</td><td>${owner.phone}</td><td>${owner.idNumber}</td><td>${owner._count?.parcelOwners || 0}</td>`;
+          ownersBody.appendChild(row);
+        });
+        const objectionOwner = document.getElementById('objectionOwner');
+        objectionOwner.disabled = currentUser.role === 'OWNER';
+        if (currentUser.role === 'OWNER' && currentUser.ownerProfile) objectionOwner.value = currentUser.ownerProfile.id;
+      } catch (error) { showNotice(error.message, true); }
     }
 
     async function fetchAcquisitions() {
@@ -610,6 +859,10 @@
         const data = await res.json();
         const tbody = document.getElementById('acquisitionsTableBody');
         tbody.innerHTML = '';
+        const eligibleAcquisitions = currentUser.role === 'OWNER' && currentUser.ownerProfile
+          ? (data.data || []).filter(acq => acq.parcel?.parcelOwners?.some(link => link.ownerId === currentUser.ownerProfile.id))
+          : (data.data || []);
+        fillSelect('objectionAcquisition', eligibleAcquisitions, acq => `#${acq.id} · ${acq.parcel?.surveyNumber || 'Parcel'} · ${acq.status}`, 'Choose acquisition');
 
         if (!data.data || data.data.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No acquisitions found</td></tr>';
@@ -631,7 +884,7 @@
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
@@ -645,6 +898,7 @@
       const next = transitions[acq.status];
       if (!next) return `<span style="color:#10b981;">✓ Done</span>`;
 
+      if (currentUser.role !== 'ADMIN') return '<span style="color:#65717d;">Admin action</span>';
       return `<button class="btn btn-secondary" onclick="advanceStatus(${acq.id}, '${next}')">Advance to ${next} ➔</button>`;
     }
 
@@ -662,19 +916,21 @@
         if (result.success) {
           fetchAcquisitions();
         } else {
-          alert(`Status transition rejected: ${result.message}`);
+          showNotice(`Status transition rejected: ${result.message}`, true);
         }
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
     async function fetchParcels() {
       try {
-        const res = await fetch('/api/v1/parcels');
-        const data = await res.json();
+        const result = await apiRequest(currentUser.role === 'OWNER' ? '/api/v1/parcels/mine' : '/api/v1/parcels');
+        const data = result;
         const tbody = document.getElementById('parcelsTableBody');
         tbody.innerHTML = '';
+        fillSelect('acqParcel', data.data || [], parcel => `${parcel.surveyNumber} · ${parcel.village}`, 'Choose parcel');
+        fillSelect('shareParcel', data.data || [], parcel => `${parcel.surveyNumber} · ${parcel.village}`, 'Choose parcel');
 
         data.data.forEach(p => {
           const ownersStr = p.parcelOwners.map(po => `${po.owner.fullName} (${po.sharePercent}%)`).join(', ');
@@ -690,16 +946,18 @@
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
     async function fetchProjects() {
+      if (currentUser.role !== 'ADMIN') return;
       try {
         const res = await fetch('/api/v1/projects');
         const data = await res.json();
         const tbody = document.getElementById('projectsTableBody');
         tbody.innerHTML = '';
+        fillSelect('acqProject', data.data || [], project => `${project.name} · ${project.department}`, 'Choose project');
 
         data.data.forEach(pr => {
           const tr = document.createElement('tr');
@@ -713,16 +971,13 @@
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
     async function fetchCompensations() {
       try {
-        const res = await fetch('/api/v1/compensations', {
-          headers: { 'Authorization': authToken ? `Bearer ${authToken}` : '' }
-        });
-        const data = await res.json();
+        const data = await apiRequest('/api/v1/compensations');
         const tbody = document.getElementById('compensationsTableBody');
         tbody.innerHTML = '';
 
@@ -740,13 +995,13 @@
             <td><strong>₹${c.amount.toLocaleString()}</strong></td>
             <td><span class="status-badge status-${c.paymentStatus}">${c.paymentStatus}</span></td>
             <td>
-              ${c.paymentStatus === 'PENDING' ? `<button class="btn btn-success" onclick="disbursePayment(${c.id})">Disburse ₹</button>` : `<span style="color:#10b981;">Disbursed</span>`}
+              ${c.paymentStatus === 'PENDING' && currentUser.role === 'ADMIN' ? `<button class="btn btn-success" onclick="disbursePayment(${c.id})">Disburse ₹</button>` : c.paymentStatus === 'PENDING' ? '<span style="color:#8b6115;">Awaiting admin payment</span>' : `<span style="color:#10b981;">Disbursed</span>`}
             </td>
           `;
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
@@ -766,19 +1021,16 @@
         if (result.success) {
           fetchCompensations();
         } else {
-          alert('Disbursement failed: ' + result.message);
+          showNotice('Disbursement failed: ' + result.message, true);
         }
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
     }
 
     async function fetchObjections() {
       try {
-        const res = await fetch('/api/v1/objections', {
-          headers: { 'Authorization': authToken ? `Bearer ${authToken}` : '' }
-        });
-        const data = await res.json();
+        const data = await apiRequest('/api/v1/objections');
         const tbody = document.getElementById('objectionsTableBody');
         tbody.innerHTML = '';
 
@@ -796,7 +1048,10 @@
             <td>${obj.reason}</td>
             <td><span class="status-badge status-${obj.status}">${obj.status}</span></td>
             <td>
-              ${obj.status === 'OPEN' ? `<button class="btn btn-secondary" onclick="resolveObjection(${obj.id}, 'RESOLVED')">Resolve</button>` : `<span style="color:#9ca3af;">Done</span>`}
+              ${currentUser.role === 'ADMIN' && obj.status === 'OPEN' ? `<button class="btn btn-secondary" onclick="resolveObjection(${obj.id}, 'UNDER_REVIEW')">Start review</button>` : ''}
+              ${currentUser.role === 'ADMIN' && obj.status === 'UNDER_REVIEW' ? `<button class="btn btn-success" onclick="resolveObjection(${obj.id}, 'RESOLVED')">Resolve</button> <button class="btn btn-secondary" onclick="resolveObjection(${obj.id}, 'REJECTED')">Reject</button>` : ''}
+              ${currentUser.role === 'OWNER' && ['OPEN','UNDER_REVIEW'].includes(obj.status) ? '<span style="color:#8b6115;">Awaiting admin decision</span>' : ''}
+              ${['RESOLVED','REJECTED'].includes(obj.status) ? `<span style="color:#65717d;">${obj.status}</span>` : ''}
             </td>
           `;
           tbody.appendChild(tr);
@@ -814,33 +1069,17 @@
             'Content-Type': 'application/json',
             'Authorization': authToken ? `Bearer ${authToken}` : ''
           },
-          body: JSON.stringify({ status, resolutionNotes: 'Reviewed and settled by Officer' })
+          body: JSON.stringify({ status, resolutionNotes: 'Reviewed and decided by Admin' })
         });
         const result = await res.json();
         if (result.success) {
           fetchObjections();
         } else {
-          alert('Resolution failed: ' + result.message);
+          showNotice('Resolution failed: ' + result.message, true);
         }
       } catch (e) {
-        console.error(e);
+        showNotice(e.message, true);
       }
-    }
-
-    async function runOAuthDemo() {
-      const output = document.getElementById('oauthOutput');
-      output.textContent = 'Simulating OAuth 2.0 flow...\n\n';
-
-      // Step 1: Authorization Endpoint
-      const step1 = await fetch('/api/v1/auth/oauth/google-demo');
-      const data1 = await step1.json();
-      output.textContent += `==> Step 1: Client directs user to OAuth Provider\n${JSON.stringify(data1, null, 2)}\n\n`;
-
-      // Step 2: Code exchange
-      const step2 = await fetch(data1.data.authorizationUrl);
-      const data2 = await step2.json();
-      output.textContent += `==> Step 2: Authorization Code Exchanged & Token Issued\n${JSON.stringify(data2, null, 2)}\n\n`;
-      output.textContent += `✅ User authenticated via simulated OAuth 2.0! Token received: Bearer ${data2.data.token.slice(0, 30)}...`;
     }
 
     function refreshAll() {
@@ -849,14 +1088,14 @@
       fetchProjects();
       fetchCompensations();
       fetchObjections();
+      fetchOwners();
     }
 
     // Auto bootstrap on page load
-    window.onload = async () => {
-      initSSE();
-      // Auto login as default Officer Ravi
-      await quickLogin('ravi@ap.gov.in', 'OFFICER');
-    };
+    document.addEventListener('DOMContentLoaded', () => {
+      bindForms();
+      switchRole('admin@ap.gov.in');
+    });
   </script>
 </body>
 </html>

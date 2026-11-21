@@ -34,7 +34,7 @@ const VALID_TRANSITIONS = {
 /**
  * 1. INITIATE A NEW LAND ACQUISITION WORKFLOW
  * POST /api/v1/acquisitions
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { parcelId, projectId }
  */
 const createAcquisition = async (req, res, next) => {
@@ -115,7 +115,7 @@ const createAcquisition = async (req, res, next) => {
       surveyNumber: parcel.surveyNumber,
       projectName: project.name,
       status: 'PROPOSED',
-      officer: req.user.name
+      createdBy: req.user.name
     });
 
     return sendSuccess(res, 201, 'Land acquisition workflow initiated', acquisition);
@@ -134,6 +134,11 @@ const getAcquisitions = async (req, res, next) => {
     const { status, projectId, village } = req.query;
 
     const where = {};
+    if (req.user.role === 'OWNER') {
+      where.parcel = {
+        parcelOwners: { some: { ownerId: req.user.ownerProfile?.id || -1 } }
+      };
+    }
     if (status) {
       where.status = status;
     }
@@ -141,9 +146,7 @@ const getAcquisitions = async (req, res, next) => {
       where.projectId = Number(projectId);
     }
     if (village) {
-      where.parcel = {
-        village: { contains: village }
-      };
+      where.parcel = { ...(where.parcel || {}), village: { contains: village } };
     }
 
     const acquisitions = await prisma.acquisition.findMany({
@@ -208,6 +211,10 @@ const getAcquisitionById = async (req, res, next) => {
       return sendError(res, 404, `Acquisition #${acquisitionId} not found.`);
     }
 
+    if (req.user.role === 'OWNER' && !acquisition.parcel.parcelOwners.some(link => link.ownerId === req.user.ownerProfile?.id)) {
+      return sendError(res, 403, 'You can only view acquisitions linked to your landowner account.');
+    }
+
     return sendSuccess(res, 200, 'Acquisition workflow details', acquisition);
   } catch (error) {
     next(error);
@@ -217,7 +224,7 @@ const getAcquisitionById = async (req, res, next) => {
 /**
  * 4. ADVANCE ACQUISITION WORKFLOW STAGE (THE STATE MACHINE)
  * PATCH /api/v1/acquisitions/:id/status
- * Access: ADMIN, OFFICER
+ * Access: ADMIN
  * Body: { newStatus: "NOTIFIED" | "VALUATED" | "COMPENSATED" | "COMPLETED" }
  */
 const updateStatus = async (req, res, next) => {

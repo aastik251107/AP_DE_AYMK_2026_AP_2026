@@ -5,7 +5,7 @@
 // 💡 WHAT IS DATABASE SEEDING?
 // When you create a fresh database, it is completely empty.
 // "Seeding" means populating the database with initial realistic sample data
-// (like test government officers, farmers, parcels, and highway projects)
+// (like the administrator, landowners, parcels, and highway projects)
 // so that our team and professors can test all API endpoints immediately!
 // ============================================================================
 
@@ -49,22 +49,10 @@ async function main() {
   const defaultPassword = await bcrypt.hash('password123', 10);
 
   // --------------------------------------------------------------------------
-  // STEP 3: INSERT SYSTEM USERS (ADMIN, OFFICER, CITIZEN)
+  // STEP 3: INSERT SYSTEM USERS (ADMIN AND LANDOWNERS)
   // --------------------------------------------------------------------------
   // 💡 LECTURE TOPIC: Role-Based Access Control (RBAC)
-  // We create accounts for each role so we can test different authorization levels:
-
-  // Officer account (Can create parcels and manage acquisitions)
-  const officerRavi = await prisma.user.create({
-    data: {
-      name: 'Officer Ravi',
-      email: 'ravi@ap.gov.in',
-      password: defaultPassword,
-      role: 'OFFICER'
-    }
-  });
-
-  // Administrator account (Has master permissions, can edit budgets and users)
+  // Administrator account manages projects, parcels, acquisitions, and queries.
   const adminSharma = await prisma.user.create({
     data: {
       name: 'Admin Sharma',
@@ -102,7 +90,7 @@ async function main() {
     }
   });
 
-  console.log('👤 Created users: Admin Sharma, Officer Ravi, Suresh, Ramesh, Venkatesh');
+  console.log('👤 Created users: Admin Sharma, Suresh, Ramesh, Venkatesh');
 
   // --------------------------------------------------------------------------
   // STEP 4: REGISTER CITIZEN LANDOWNERS IN CADASTRAL REGISTRY
@@ -219,7 +207,7 @@ async function main() {
       parcelId: parcel1.id,
       projectId: projectHighway.id,
       status: 'VALUATED',
-      createdById: officerRavi.id
+      createdById: adminSharma.id
     }
   });
 
@@ -277,7 +265,7 @@ async function main() {
       acquisitionId: acq1.id,
       oldStatus: 'PROPOSED',
       newStatus: 'NOTIFIED',
-      changedById: officerRavi.id
+      changedById: adminSharma.id
     }
   });
 
@@ -286,7 +274,7 @@ async function main() {
       acquisitionId: acq1.id,
       oldStatus: 'NOTIFIED',
       newStatus: 'VALUATED',
-      changedById: officerRavi.id
+      changedById: adminSharma.id
     }
   });
 

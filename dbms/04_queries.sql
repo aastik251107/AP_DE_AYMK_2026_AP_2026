@@ -39,7 +39,7 @@ SELECT
     role, 
     created_at
 FROM users
-WHERE LOWER(email) = LOWER('ravi@ap.gov.in');
+WHERE LOWER(email) = LOWER('admin@ap.gov.in');
 
 -- @R02
 -- READ: Citizen landowner verification by National ID
@@ -120,7 +120,7 @@ ORDER BY budget DESC;
 
 -- @R07
 -- READ: Active land acquisition pipeline overview
--- Screen: Officer Operations Dashboard
+-- Screen: Admin Operations Dashboard
 -- Joins acquisitions, projects, parcels, and users to display full status of all cases.
 SELECT 
     a.acquisition_id,
@@ -130,7 +130,7 @@ SELECT
     pa.village,
     pa.area_sqm,
     a.status AS current_stage,
-    u.name AS managing_officer,
+    u.name AS managing_admin,
     a.created_at,
     a.updated_at
 FROM acquisitions a
@@ -160,7 +160,7 @@ ORDER BY a.created_at ASC;
 -- @R09
 -- READ: Single acquisition case dossier
 -- Screen: Acquisition Case File Detail View
--- Fetches complete details of a single case including parcel, project, and officer info.
+-- Fetches complete details of a single case including parcel, project, and admin info.
 SELECT 
     a.acquisition_id,
     a.status AS current_stage,
@@ -173,8 +173,8 @@ SELECT
     pa.area_sqm,
     pa.market_rate_per_sqm,
     (pa.area_sqm * pa.market_rate_per_sqm) AS total_parcel_valuation,
-    u.name AS managing_officer,
-    u.email AS officer_email,
+    u.name AS managing_admin,
+    u.email AS admin_email,
     a.created_at,
     a.updated_at
 FROM acquisitions a
@@ -259,13 +259,13 @@ WHERE a.acquisition_id = 501;
 -- @R14
 -- READ: Immutable audit trail of lifecycle stage transitions
 -- Screen: Legal Compliance & RTI Audit History
--- Chronological log of every status transition for a case file with authorized officer.
+-- Chronological log of every status transition for a case file with authorized admin.
 SELECT 
     sh.history_id,
     sh.acquisition_id,
     COALESCE(sh.old_status::TEXT, 'INITIATED') AS previous_stage,
     sh.new_status AS new_stage,
-    u.name AS authorized_by_officer,
+    u.name AS authorized_by_admin,
     sh.changed_at
 FROM status_history sh
 JOIN users u ON sh.changed_by = u.user_id
@@ -370,17 +370,17 @@ ORDER BY total_compensation_entitled DESC
 LIMIT 5;
 
 -- @R21
--- READ: Casework distribution per revenue officer
+-- READ: Acquisition casework handled by administrators
 -- Screen: Administrative Workload Balancing
--- Counts total active acquisition cases managed by each field officer.
+-- Counts total active acquisition cases managed by each administrator.
 SELECT 
     u.user_id,
-    u.name AS officer_name,
+    u.name AS admin_name,
     u.email,
     COUNT(a.acquisition_id) AS total_cases_handled
 FROM users u
 LEFT JOIN acquisitions a ON u.user_id = a.created_by
-WHERE u.role = 'OFFICER'
+WHERE u.role = 'ADMIN'
 GROUP BY u.user_id, u.name, u.email
 ORDER BY total_cases_handled DESC;
 
@@ -426,7 +426,7 @@ SELECT
     pr.name AS project_name,
     pa.survey_number,
     a.status,
-    u.name AS managing_officer,
+    u.name AS managing_admin,
     a.updated_at
 FROM acquisitions a
 JOIN projects pr ON a.project_id = pr.project_id
@@ -486,7 +486,7 @@ DO UPDATE SET amount = EXCLUDED.amount;
 
 -- @W03
 -- WRITE: Advance acquisition lifecycle stage
--- Screen: Officer Workflow State Transition
+-- Screen: Admin Workflow State Transition
 -- Advances acquisition status from VALUATED to COMPENSATED (trigger updates updated_at).
 UPDATE acquisitions
 SET status = 'COMPENSATED'

@@ -10,7 +10,7 @@
 // ============================================================================
 
 const express = require('express');
-const { register, login, logout, getMe, oauthSimulate } = require('../controllers/authController');
+const { register, login, logout, getMe } = require('../controllers/authController');
 const { authenticate } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -23,8 +23,5 @@ router.post('/logout', logout);
 // Protected Endpoint (Requires valid JWT token or cookie session)
 // Notice how `authenticate` runs BEFORE `getMe`!
 router.get('/me', authenticate, getMe);
-
-// Educational OAuth 2.0 demonstration endpoint
-router.get('/oauth/google-demo', oauthSimulate);
 
 module.exports = router;

@@ -6,8 +6,7 @@
 // "Authorisation, Role Based Authorisation, Prisma CRUD Operations"
 //
 // 💡 WHAT THIS CONTROLLER DOES:
-// Allows System Administrators to view users and promote/demote user roles
-// (e.g. promoting an Officer to an Admin).
+// Allows System Administrators to view users and assign ADMIN or OWNER roles.
 // ============================================================================
 
 const { PrismaClient } = require('@prisma/client');
@@ -80,7 +79,7 @@ const getUserById = async (req, res, next) => {
 /**
  * 3. UPDATE USER ROLE (ADMIN ONLY)
  * PATCH /api/v1/users/:id/role
- * Body: { role: "ADMIN" | "OFFICER" | "OWNER" }
+ * Body: { role: "ADMIN" | "OWNER" }
  */
 const updateUserRole = async (req, res, next) => {
   try {
@@ -88,8 +87,8 @@ const updateUserRole = async (req, res, next) => {
     const { role } = req.body;
 
     // Validate that the requested role is a valid enum value
-    if (!['ADMIN', 'OFFICER', 'OWNER'].includes(role)) {
-      return sendError(res, 400, 'Invalid role. Must be one of: ADMIN, OFFICER, OWNER.');
+    if (!['ADMIN', 'OWNER'].includes(role)) {
+      return sendError(res, 400, 'Invalid role. Must be one of: ADMIN, OWNER.');
     }
 
     const updatedUser = await prisma.user.update({
